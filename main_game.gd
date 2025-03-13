@@ -537,8 +537,8 @@ func show_finances():
 func new_game():
 	# Reset game state with explicit integer values
 	cash = 2000
-	bank = 0
-	debt = 5500
+	bank = 1000
+	debt = 0
 	guns = 0
 	health = 100
 	

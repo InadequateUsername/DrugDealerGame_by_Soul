@@ -35,7 +35,7 @@ func _ready():
 	font = ThemeDB.fallback_font
 
 # Set a larger font size for better readability
-	var default_font_size = 16
+	var _default_font_size = 16
 
 # Initial draw
 	refresh_items()
