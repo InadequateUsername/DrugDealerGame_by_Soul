@@ -6,6 +6,8 @@ var bank = 0
 var debt = 5500
 var guns = 0
 var health = 100
+var reputation = 50 # Added for event system
+var heat = 0 # Added for event system - police attention
 
 # Inventory
 var inventory = []
@@ -40,10 +42,11 @@ var current_location = "Kensington"
 @onready var inventory_list = $MainContainer/BottomSection/InventoryContainer/InventoryList
 @onready var location_label = $MainContainer/TopSection/StatsContainer/LocationContainer/LocationLabel
 @onready var capacity_label = $MainContainer/BottomSection/InventoryContainer/CapacityLabel
+@onready var event_system = $EventSystem # Reference to the EventSystem node
 
 func _ready():
 	
-		# Wait a frame to ensure all nodes are ready
+	# Wait a frame to ensure all nodes are ready
 	await get_tree().process_frame
 	
 	# Check if the node exists before connecting
@@ -52,7 +55,7 @@ func _ready():
 		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(new_game)
 		$MainContainer/BottomSection/GameButtons/Spacer/ExitButton.pressed.connect(quit_game)
 	else:
-			print("FinancesButton not found! Full path:", get_path_to(get_node("MainContainer/TopSection/ActionButtons")))
+		print("FinancesButton not found! Full path:", get_path_to(get_node("MainContainer/TopSection/ActionButtons")))
 
 	# Initialize UI
 	update_stats_display()
@@ -104,9 +107,16 @@ func randomize_prices():
 		drugs[drug_name]["price"] = int(base_price * randf_range(0.8, 1.2))
 
 func change_location(location):
+	var previous_location = current_location
 	current_location = location
-	location_label.text = "Currently In:  " + location
+	location_label.text = location # Changed to just show the location name
 	update_market_display()
+	
+	# Check for random events when changing location
+	if previous_location != location: # Only check for events if actually changing locations
+		$EventSystem.check_for_event(location)
+
+# Functions needed by the event system
 
 func buy_drugs():
 	# Implement buying logic
@@ -127,6 +137,8 @@ func new_game():
 	debt = 5500
 	guns = 0
 	health = 100
+	reputation = 50
+	heat = 0
 	
 	for drug_name in drugs:
 		drugs[drug_name]["qty"] = 0
@@ -140,3 +152,50 @@ func new_game():
 
 func quit_game():
 	get_tree().quit()
+
+# === Event System Integration Functions ===
+
+# These functions will be called by the event system when events occur
+func add_cash(amount):
+	cash += amount
+	update_stats_display()
+	
+func add_health(amount):
+	health = clamp(health + amount, 0, 100)
+	update_stats_display()
+
+func add_reputation(amount):
+	reputation = clamp(reputation + amount, 0, 100)
+	# If you have a reputation display, update it here
+	
+func add_heat(amount):
+	heat = clamp(heat + amount, 0, 100)
+	# If you have a heat display, update it here
+	
+func add_inventory(amount):
+	# This is simplified - you might want to add a specific drug
+	current_capacity = clamp(current_capacity + amount, 0, trenchcoat_capacity)
+	update_inventory_display()
+	
+func add_time(_hours):
+	# If you have a time system, implement it here
+	pass
+	
+func add_connection(_amount):
+	# If you have a connections/network system, implement it here
+	pass
+func show_notification(text):
+	# Create a notification label
+	var notification_label = Label.new()
+	notification_label.text = text
+	notification_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.2)) # Yellow text
+	notification_label.position = Vector2(50, 50)
+	add_child(notification_label)
+	
+	# Create a timer to remove the notification
+	var timer = Timer.new()
+	timer.wait_time = 2.5
+	timer.one_shot = true
+	timer.timeout.connect(func(): notification_label.queue_free())
+	notification_label.add_child(timer)
+	timer.start()

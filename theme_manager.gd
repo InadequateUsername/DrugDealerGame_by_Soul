@@ -219,7 +219,7 @@ func style_list(node_path):
 	
 func style_progress_bars():
 	# Style health bar
-	var health_bar = get_node_or_null("/root/Control/MainContainer/TopSection/HealthContainer/HealthRow/HealthBar")
+	var health_bar = get_node_or_null("/root/Control/MainContainer/TopSection/StatsContainer/HealthContainer/HealthRow/HealthBar")
 	if not health_bar:
 		push_warning("Could not find HealthBar")
 		return
