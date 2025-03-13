@@ -7,16 +7,42 @@ const DARKEST_BG_COLOR = Color("#0D0D0D")
 const BUTTON_BG_COLOR = Color("#333333")
 const BUTTON_ACTIVE_BG_COLOR = Color("#444444")
 const BORDER_COLOR = Color("#555555")
-const SELECTION_COLOR = Color("#00CC66")
+const SELECTION_COLOR = Color("#01733a")
 const TEXT_COLOR = Color("#CCCCCC")
 const CASH_COLOR = Color("#4DF75B")  # Bright green
 const DEBT_COLOR = Color("#FF5555")  # Bright red
 const GUNS_COLOR = Color("#F7F34D")  # Bright yellow
 const HEALTH_COLOR = Color("#0066CC")  # Medium blue
 
+# Button colors
+const BUY_BG_COLOR = Color("#2D882D")  # Darker green
+const BUY_HOVER_COLOR = Color("#3AA83A")  # Medium green
+const BUY_PRESSED_COLOR = Color("#4BC44B")  # Lighter green
+const BUY_BORDER_COLOR = Color("#88FF88")  # Light green border
+
+const SELL_BG_COLOR = Color("#AA2828")  # Darker red
+const SELL_HOVER_COLOR = Color("#CC3232")  # Medium red
+const SELL_PRESSED_COLOR = Color("#E03C3C")  # Lighter red
+const SELL_BORDER_COLOR = Color("#FF8888")  # Light red border
+
+const INACTIVE_BUTTON_COLOR = Color("#555555")  # Gray for inactive buttons
+const INACTIVE_BORDER_COLOR = Color("#777777")  # Light gray border
+
+# References to buttons
+var buy_button: Button
+var sell_button: Button
+var market_list
+var inventory_list
+
 func _ready():
 	# Wait one frame to ensure all nodes are properly initialized
 	await get_tree().process_frame
+	
+	# Store references to important nodes
+	buy_button = get_node_or_null("/root/Control/MainContainer/BottomSection/ActionButtons/BuyButton")
+	sell_button = get_node_or_null("/root/Control/MainContainer/BottomSection/ActionButtons/SellButton")
+	market_list = get_node_or_null("/root/Control/MainContainer/BottomSection/MarketContainer/MarketList")
+	inventory_list = get_node_or_null("/root/Control/MainContainer/BottomSection/InventoryContainer/InventoryList")
 	
 	# Add all buttons to the "buttons" group
 	var all_buttons = []
@@ -26,6 +52,120 @@ func _ready():
 	
 	# Apply dark theme to the entire UI
 	apply_dark_theme()
+	
+	# Connect signals for list selections
+	if market_list:
+		if not market_list.is_connected("item_selected", Callable(self, "_on_market_item_selected")):
+			market_list.item_selected.connect(_on_market_item_selected)
+	
+	if inventory_list:
+		if not inventory_list.is_connected("item_selected", Callable(self, "_on_inventory_item_selected")):
+			inventory_list.item_selected.connect(_on_inventory_item_selected)
+	
+	# Initially disable both buttons
+	set_button_inactive(buy_button)
+	set_button_inactive(sell_button)
+
+# Signal handlers for list selections
+func _on_market_item_selected(index):
+	# Enable buy button and disable sell button
+	set_button_active(buy_button)
+	set_button_inactive(sell_button)
+	
+	# If inventory also has a selection, clear it
+	if inventory_list and inventory_list.is_anything_selected():
+		inventory_list.deselect_all()
+
+func _on_inventory_item_selected(index):
+	# Enable sell button and disable buy button
+	set_button_active(sell_button)
+	set_button_inactive(buy_button)
+	
+	# If market also has a selection, clear it
+	if market_list and market_list.is_anything_selected():
+		market_list.deselect_all()
+
+# Set a button to active state with its default colors
+func set_button_active(button):
+	if not button:
+		return
+		
+	var bg_color
+	var hover_color
+	var pressed_color
+	var border_color
+	
+	if button.name == "Buy":
+		bg_color = BUY_BG_COLOR
+		hover_color = BUY_HOVER_COLOR
+		pressed_color = BUY_PRESSED_COLOR
+		border_color = BUY_BORDER_COLOR
+	elif button.name == "Sell":
+		bg_color = SELL_BG_COLOR
+		hover_color = SELL_HOVER_COLOR
+		pressed_color = SELL_PRESSED_COLOR
+		border_color = SELL_BORDER_COLOR
+	else:
+		# Default colors for other buttons
+		bg_color = BUTTON_BG_COLOR
+		hover_color = Color(BUTTON_BG_COLOR.r + 0.1, BUTTON_BG_COLOR.g + 0.1, BUTTON_BG_COLOR.b + 0.1)
+		pressed_color = BUTTON_ACTIVE_BG_COLOR
+		border_color = BORDER_COLOR
+	
+	apply_button_style(button, bg_color, hover_color, pressed_color, border_color)
+	button.disabled = false
+
+# Set a button to inactive (gray) state
+func set_button_inactive(button):
+	if not button:
+		return
+		
+	apply_button_style(button, INACTIVE_BUTTON_COLOR, INACTIVE_BUTTON_COLOR, 
+		INACTIVE_BUTTON_COLOR, INACTIVE_BORDER_COLOR)
+	button.disabled = true
+
+# Apply specific style to a button
+func apply_button_style(button, bg_color, hover_color, pressed_color, border_color):
+	# Normal state
+	var normal_style = StyleBoxFlat.new()
+	normal_style.bg_color = bg_color
+	normal_style.set_border_width_all(1)
+	normal_style.border_color = border_color
+	normal_style.set_corner_radius_all(3)
+	
+	# Hover state
+	var hover_style = StyleBoxFlat.new()
+	hover_style.bg_color = hover_color
+	hover_style.set_border_width_all(1)
+	hover_style.border_color = border_color
+	hover_style.set_corner_radius_all(3)
+	
+	# Pressed state
+	var pressed_style = StyleBoxFlat.new()
+	pressed_style.bg_color = pressed_color
+	pressed_style.set_border_width_all(1)
+	pressed_style.border_color = border_color
+	pressed_style.set_corner_radius_all(3)
+	
+	# Focus state
+	var focus_style = StyleBoxFlat.new()
+	focus_style.bg_color = bg_color
+	focus_style.set_border_width_all(2)
+	focus_style.border_color = SELECTION_COLOR
+	focus_style.set_corner_radius_all(3)
+	
+	# Apply styles
+	button.add_theme_stylebox_override("normal", normal_style)
+	button.add_theme_stylebox_override("hover", hover_style)
+	button.add_theme_stylebox_override("pressed", pressed_style)
+	button.add_theme_stylebox_override("focus", focus_style)
+	button.add_theme_stylebox_override("disabled", normal_style.duplicate())
+	
+	# Text color
+	button.add_theme_color_override("font_color", TEXT_COLOR)
+	button.add_theme_color_override("font_pressed_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_color", Color.WHITE)
+	button.add_theme_color_override("font_disabled_color", Color(TEXT_COLOR, 0.5))  # Semi-transparent
 
 # Recursively find all buttons in the scene
 func find_all_buttons(node, button_list):
@@ -151,29 +291,51 @@ func style_buttons():
 	var buttons = get_tree().get_nodes_in_group("buttons")
 	
 	for button in buttons:
+		# Skip Buy and Sell buttons as they will be handled separately
+		if button.name == "Buy" or button.name == "Sell":
+			continue
+			
+		var bg_color = BUTTON_BG_COLOR
+		var hover_color = Color(BUTTON_BG_COLOR.r + 0.1, BUTTON_BG_COLOR.g + 0.1, BUTTON_BG_COLOR.b + 0.1)
+		var pressed_color = BUTTON_ACTIVE_BG_COLOR
+		var border_color = BORDER_COLOR
+		var text_color = TEXT_COLOR
+		
+		# Default styling for action buttons
+		if button.get_parent() and button.get_parent().name == "ActionButtons":
+			bg_color = Color("#4D8A4D")  # Green for other action buttons
+			hover_color = Color("#5AAD5A")
+			pressed_color = Color("#75C675")
+			border_color = Color("#88FF88")
+			text_color = Color.WHITE
+		
 		# Normal state
 		var normal_style = StyleBoxFlat.new()
-		normal_style.bg_color = BUTTON_BG_COLOR
+		normal_style.bg_color = bg_color
 		normal_style.set_border_width_all(1)
-		normal_style.border_color = BORDER_COLOR
+		normal_style.border_color = border_color
+		normal_style.set_corner_radius_all(3)  # Rounded corners for better appearance
 		
 		# Hover state
 		var hover_style = StyleBoxFlat.new()
-		hover_style.bg_color = Color(BUTTON_BG_COLOR.r + 0.1, BUTTON_BG_COLOR.g + 0.1, BUTTON_BG_COLOR.b + 0.1)
+		hover_style.bg_color = hover_color
 		hover_style.set_border_width_all(1)
-		hover_style.border_color = BORDER_COLOR
+		hover_style.border_color = border_color
+		hover_style.set_corner_radius_all(3)
 		
 		# Pressed state
 		var pressed_style = StyleBoxFlat.new()
-		pressed_style.bg_color = BUTTON_ACTIVE_BG_COLOR
+		pressed_style.bg_color = pressed_color
 		pressed_style.set_border_width_all(1)
-		pressed_style.border_color = BORDER_COLOR
+		pressed_style.border_color = border_color
+		pressed_style.set_corner_radius_all(3)
 		
 		# Focus state
 		var focus_style = StyleBoxFlat.new()
-		focus_style.bg_color = BUTTON_BG_COLOR
+		focus_style.bg_color = bg_color
 		focus_style.set_border_width_all(2)
 		focus_style.border_color = SELECTION_COLOR
+		focus_style.set_corner_radius_all(3)
 		
 		# Apply styles
 		button.add_theme_stylebox_override("normal", normal_style)
@@ -182,9 +344,12 @@ func style_buttons():
 		button.add_theme_stylebox_override("focus", focus_style)
 		
 		# Text color
-		button.add_theme_color_override("font_color", TEXT_COLOR)
+		button.add_theme_color_override("font_color", text_color)
 		button.add_theme_color_override("font_pressed_color", Color.WHITE)
 		button.add_theme_color_override("font_hover_color", Color.WHITE)
+		
+		# Change cursor to pointing hand for all buttons
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 func style_tables():
 	# Style the market and inventory lists
