@@ -81,8 +81,10 @@ func update_stats_display():
 	health_progress.value = health
 
 func update_market_display():
-	market_list.clear()
-	
+	if market_list:
+		market_list.clear()
+	else:
+		print("Warning: MarketList not found!")
 	# Update prices based on location (this would be more complex in your game)
 	randomize_prices()
 	
@@ -91,6 +93,12 @@ func update_market_display():
 		market_list.add_item(drug_name + " - $" + str(drugs[drug_name]["price"]))
 
 func update_inventory_display():
+	if inventory_list:
+		inventory_list.clear()
+	else:
+		print("Warning: InventoryList not found!")
+	
+	# Rest of your function...
 	inventory_list.clear()
 	
 	for drug_name in drugs:
@@ -190,7 +198,7 @@ func show_notification(text):
 	notification_label.text = text
 	notification_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.2)) # Yellow text
 	notification_label.position = Vector2(50, 50)
-	add_child(notification_label)
+	add_child.call_deferred(notification_label)
 	
 	# Create a timer to remove the notification
 	var timer = Timer.new()
@@ -198,4 +206,4 @@ func show_notification(text):
 	timer.one_shot = true
 	timer.timeout.connect(func(): notification_label.queue_free())
 	notification_label.add_child(timer)
-	timer.start()
+	timer.autostart = true

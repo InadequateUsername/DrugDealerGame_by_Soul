@@ -1,6 +1,7 @@
-[gd_scene load_steps=5 format=3 uid="uid://g4rwseo2ew52"]
+[gd_scene load_steps=6 format=3 uid="uid://g4rwseo2ew52"]
 
 [ext_resource type="Script" uid="uid://ds1i7s4u7vhpd" path="res://main_game.gd" id="1_80nbo"]
+[ext_resource type="Script" uid="uid://b08f8cajb1sxm" path="res://drug_market_system.gd" id="2_7jktm"]
 [ext_resource type="Script" uid="uid://bjcct7n8uib2h" path="res://drug_table.gd" id="2_e2o6t"]
 [ext_resource type="Script" uid="uid://b3swwctwkvpfk" path="res://theme_manager.gd" id="2_feb5d"]
 [ext_resource type="Script" uid="uid://bvaesd88yta10" path="res://event_system.gd" id="4_fc0e3"]
@@ -15,6 +16,9 @@ grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource("1_80nbo")
+
+[node name="DrugMarketSystem" type="Node" parent="."]
+script = ExtResource("2_7jktm")
 
 [node name="EventSystem" type="Node" parent="."]
 script = ExtResource("4_fc0e3")
@@ -183,22 +187,19 @@ text = "Market"
 layout_mode = 2
 script = ExtResource("2_e2o6t")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList"]
+layout_mode = 2
+offset_right = 516.0
+offset_bottom = 23.0
 
-[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer"]
+[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ContentContainer"]
 layout_mode = 2
 
-[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer"]
-layout_mode = 2
-
-[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
+[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ContentContainer/HeaderRow"]
 layout_mode = 2
 text = "Drug"
 
-[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
+[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ContentContainer/HeaderRow"]
 layout_mode = 2
 text = "Price"
 
@@ -215,26 +216,23 @@ text = "Trenchcoat Space: 100/100"
 layout_mode = 2
 script = ExtResource("2_e2o6t")
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList"]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList"]
+layout_mode = 2
+offset_right = 516.0
+offset_bottom = 23.0
 
-[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer"]
+[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ContentContainer"]
 layout_mode = 2
 
-[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer"]
-layout_mode = 2
-
-[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ContentContainer/HeaderRow"]
 layout_mode = 2
 text = "Drug"
 
-[node name="QtyHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+[node name="QtyHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ContentContainer/HeaderRow"]
 layout_mode = 2
 text = "Qty"
 
-[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ContentContainer/HeaderRow"]
 layout_mode = 2
 text = "Price"
 
@@ -261,3 +259,5 @@ offset_top = -40.0
 offset_right = -5.0
 offset_bottom = -9.0
 text = "Exit"
+
+[node name="Timer" type="Timer" parent="."]

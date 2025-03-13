@@ -188,9 +188,10 @@ func style_buttons():
 
 func style_tables():
 	# Style the market and inventory lists
-	style_list("/root/Control/MainContainer/BottomSection/MarketContainer/MarketList")
-	style_list("/root/Control/MainContainer/BottomSection/InventoryContainer/InventoryList")
-
+	#style_list("/root/Control/MainContainer/BottomSection/MarketContainer/MarketList")
+	#style_list("/root/Control/MainContainer/BottomSection/InventoryContainer/InventoryList")
+	pass
+	
 func style_list(node_path):
 	var list = get_node_or_null(node_path)
 	
