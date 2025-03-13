@@ -143,23 +143,6 @@ text = "Central Park"
 layout_mode = 2
 text = "Brooklyn"
 
-[node name="ActionButtons" type="HBoxContainer" parent="MainContainer/TopSection"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-alignment = 1
-
-[node name="BuyButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
-layout_mode = 2
-text = "Buy"
-
-[node name="SellButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
-layout_mode = 2
-text = "Sell"
-
-[node name="FinancesButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
-layout_mode = 2
-text = "Finances"
-
 [node name="BottomSection" type="HBoxContainer" parent="MainContainer"]
 custom_minimum_size = Vector2(0, 200)
 layout_mode = 2
@@ -181,7 +164,7 @@ script = ExtResource("2_e2o6t")
 
 [node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList"]
 layout_mode = 0
-offset_right = 40.0
+offset_right = 83.0
 offset_bottom = 40.0
 
 [node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer"]
@@ -192,11 +175,25 @@ layout_mode = 2
 
 [node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
 layout_mode = 2
-text = "Drug"
 
 [node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
 layout_mode = 2
-text = "Price"
+
+[node name="ActionButtons" type="HBoxContainer" parent="MainContainer/BottomSection"]
+layout_mode = 2
+alignment = 1
+
+[node name="BuyButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+layout_mode = 2
+text = "Buy"
+
+[node name="SellButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+layout_mode = 2
+text = "Sell"
+
+[node name="FinancesButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+layout_mode = 2
+text = "Finances"
 
 [node name="InventoryContainer" type="VBoxContainer" parent="MainContainer/BottomSection"]
 layout_mode = 2
@@ -224,15 +221,12 @@ layout_mode = 2
 
 [node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
 layout_mode = 2
-text = "Drug"
 
 [node name="QtyHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
 layout_mode = 2
-text = "Qty"
 
 [node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
 layout_mode = 2
-text = "Price"
 
 [node name="GameButtons" type="VBoxContainer" parent="MainContainer/BottomSection"]
 custom_minimum_size = Vector2(100, 0)
