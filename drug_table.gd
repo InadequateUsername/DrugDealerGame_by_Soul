@@ -11,31 +11,36 @@ var selected_index = -1
 
 # Styling
 var font
-var normal_bg_color = Color("#333333")  # Match theme dark color
-var selected_bg_color = Color("#00CC66")  # Match theme selection color
-var text_color = Color("#CCCCCC")  # Match theme text color
-var selected_text_color = Color("#FFFFFF")  # White for selected text
-var border_color = Color("#555555")  # Match theme border color
-var row_height = 30  # Slightly taller rows for better readability
+
+var normal_bg_color = Color("#444444")  # Lighter background for better contrast
+var selected_bg_color = Color("#00AA00")  # Keep the green for selected items
+var text_color = Color("#FFFFFF")  # White text for better readability
+var selected_text_color = Color("#FFFFFF")  # Keep white for selected text
+var border_color = Color("#666666")  # Lighter border for better visibility
+var selected_border_color = Color("#00FF00")  # Keep green border for selected items
+var row_height = 35  # Slightly taller rows for better visibility
 
 # References
 var scroll_container
 var content_container
 
 func _ready():
-	# Set minimum size for the control
+# Set minimum size for the control
 	custom_minimum_size = Vector2(200, 200)
-	
-	# Create basic structure
+
+# Create basic structure
 	setup_control()
-	
-	# Set default font
+
+# Set default font
 	font = ThemeDB.fallback_font
-	
-	# Initial draw
+
+# Set a larger font size for better readability
+	var default_font_size = 16
+
+# Initial draw
 	refresh_items()
-	
-	# Set up resizing to ensure content is visible
+
+# Set up resizing to ensure content is visible
 	resized.connect(_on_resized)
 
 func _on_resized():
@@ -77,27 +82,34 @@ func clear():
 	selected_index = -1
 	refresh_items()
 
+# Modify the refresh_items function to add additional visual elements
 func refresh_items():
 	# Clear existing rows
 	for child in content_container.get_children():
 		child.queue_free()
 	
-	# Create header
+	# Create header with more visible styling
 	var header = HBoxContainer.new()
 	header.size_flags_horizontal = SIZE_EXPAND_FILL
 	content_container.add_child(header)
 	
-	# Create header labels
+	# Create header labels with enhanced visibility
 	for i in range(columns.size()):
 		var label = Label.new()
 		label.text = columns[i]
 		label.size_flags_horizontal = SIZE_EXPAND_FILL
 		label.size_flags_stretch_ratio = column_widths[i]
 		label.add_theme_font_override("font", font)
-		label.add_theme_color_override("font_color", text_color)
+		label.add_theme_color_override("font_color", Color("#FFFF00"))  # Yellow headers
+		label.add_theme_font_size_override("font_size", 18)  # Larger header text
 		header.add_child(label)
 	
-	# Create rows
+	# Add a separator for visual clarity
+	var separator = HSeparator.new()
+	separator.add_theme_constant_override("separation", 4)
+	content_container.add_child(separator)
+	
+	# Create rows with alternating colors for better visual distinction
 	for row_idx in range(rows.size()):
 		# Get the current row data
 		var row_data = rows[row_idx]
@@ -111,12 +123,28 @@ func refresh_items():
 		row_container.custom_minimum_size.y = row_height
 		content_container.add_child(row_container)
 		
-		# Create background panel
+		# Create background panel with alternating row colors
 		var bg = Panel.new()
 		var style = StyleBoxFlat.new()
-		style.bg_color = normal_bg_color if row_idx != selected_index else selected_bg_color
-		style.set_border_width_all(1)
-		style.border_color = border_color
+		
+		if row_idx == selected_index:
+			# Selected styling
+			style.bg_color = selected_bg_color
+			style.set_border_width_all(2)
+			style.border_color = selected_border_color
+		else:
+			# Alternating row colors for better visibility
+			if row_idx % 2 == 0:
+				style.bg_color = normal_bg_color
+			else:
+				style.bg_color = Color(normal_bg_color.r * 0.9, normal_bg_color.g * 0.9, normal_bg_color.b * 0.9)
+			
+			style.set_border_width_all(1)
+			style.border_color = border_color
+		
+		# Add rounded corners for better visual appeal
+		style.set_corner_radius_all(3)
+		
 		bg.add_theme_stylebox_override("panel", style)
 		
 		# Add background as full-size child
@@ -134,21 +162,30 @@ func refresh_items():
 		var idx = row_idx  # Make a copy for the closure
 		row_button.pressed.connect(func(): _on_row_selected(idx))
 		
-		# Add text values - now safely checking if row_data is an array
+		# Add text values
 		for i in range(min(row_data.size(), columns.size())):
 			var label = Label.new()
 			label.text = str(row_data[i])
 			label.size_flags_horizontal = SIZE_EXPAND_FILL
 			label.size_flags_stretch_ratio = column_widths[i]
 			label.add_theme_font_override("font", font)
-			label.add_theme_color_override("font_color", 
-				text_color if row_idx != selected_index else selected_text_color)
+			label.add_theme_font_size_override("font_size", 16)  # Larger text for all rows
+			
+			# Apply different color formatting for price values
+			if i == 1 and columns[i] == "Price" and label.text.begins_with("$"):
+				label.add_theme_color_override("font_color", Color("#4DFF4D"))  # Green for prices
+			else:
+				label.add_theme_color_override("font_color", 
+					selected_text_color if row_idx == selected_index else text_color)
 			
 			# Add as child of row container
 			row_container.add_child(label)
-		
-		# Add a debug print to make sure rows are being added
-		print("Added row: ", row_data)
+			
+		# Add spacing between rows
+		if row_idx < rows.size() - 1:
+			var row_separator = HSeparator.new()
+			row_separator.add_theme_constant_override("separation", 2)
+			content_container.add_child(row_separator)
 
 func _on_row_selected(index):
 	selected_index = index

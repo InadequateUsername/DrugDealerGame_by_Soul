@@ -26,9 +26,48 @@ var drugs = {
 	"Speed": {"price": 135, "qty": 0},
 	"Weed": {"price": 657, "qty": 0}
 }
+# Add these variables near your other market variables
+var base_drug_prices = {
+	"Cocaine": 16000,
+	"Hashish": 600,
+	"Heroin": 10000,
+	"Ecstasy": 30,
+	"Smack": 3000,
+	"Opium": 550,
+	"Crack": 2000,
+	"Peyote": 480,
+	"Shrooms": 800,
+	"Speed": 140,
+	"Weed": 650
+}
+
+# Location price modifiers (percentage adjustment)
+var location_modifiers = {
+	"Bronx": {"Crack": 80, "Weed": 110, "Speed": 90},
+	"Manhattan": {"Cocaine": 120, "Heroin": 110, "Ecstasy": 130},
+	"Kensington": {"Hashish": 90, "Smack": 80, "Shrooms": 70},
+	"Coney Island": {"Weed": 120, "Ecstasy": 80, "Peyote": 110},
+	"Central Park": {"Shrooms": 120, "Peyote": 130, "Weed": 90},
+	"Brooklyn": {"Crack": 70, "Smack": 85, "Speed": 120}
+}
+
+# Market events (rare price spikes or crashes)
+var market_events = [
+	{"name": "Police Bust", "drug": "", "message": "Police busted a major supplier! DRUG_NAME prices are soaring!", "effect": 250},
+	{"name": "New Shipment", "drug": "", "message": "A new shipment of DRUG_NAME has flooded the market. Prices are crashing!", "effect": 40},
+	{"name": "Gang War", "drug": "", "message": "A gang war has disrupted the DRUG_NAME trade. Prices are up!", "effect": 180},
+	{"name": "Lab Raid", "drug": "", "message": "DEA raided several DRUG_NAME labs. Prices are up!", "effect": 200},
+	{"name": "Addicts Dying", "drug": "", "message": "Too many DRUG_NAME users are dying. Demand is down!", "effect": 60},
+	{"name": "Celebrity Overdose", "drug": "", "message": "A celebrity OD'd on DRUG_NAME. The drug is trending!", "effect": 150}
+]
+
 
 # Current location
 var current_location = "Kensington"
+
+# Add these variables to your existing variables
+var save_file_path = "/Users/Scott/Documents/GitHub/DrugDealerGame_by_Soul"
+var auto_save = true  # Set to true to save automatically when quitting
 
 # Variables for quantity dialog
 var quantity_dialog
@@ -43,6 +82,10 @@ var is_buying = false
 var message_label
 var message_timer = 0
 var message_duration = 3.0  # How long messages stay on screen
+
+# Add these variables to your existing variables
+var save_dialog
+var load_dialog
 
 # UI References
 @onready var cash_label = $MainContainer/TopSection/StatsContainer/CashRow/CashValue
@@ -59,13 +102,21 @@ func _ready():
 	# Wait a frame to ensure all nodes are ready
 	await get_tree().process_frame
 	
-	# Check if the node exists before connecting
-	if has_node("MainContainer/BottomSection/ActionButtons/FinancesButton"):
-		$MainContainer/BottomSection/ActionButtons/FinancesButton.pressed.connect(show_finances)
-		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(new_game)
-		$MainContainer/BottomSection/GameButtons/Spacer/ExitButton.pressed.connect(quit_game)
+		# Set up file dialogs
+	setup_file_dialogs()
+	
+	# Connect to buttons added in the editor
+	if has_node("MainContainer/BottomSection/GameButtons/Spacer/SaveGameButton"):
+		$MainContainer/BottomSection/GameButtons/Spacer/SaveGameButton.pressed.connect(save_game)
+		print("Save button connected")
 	else:
-		print("FinancesButton not found! Full path:", get_path_to(get_node("MainContainer/BottomSection/ActionButtons")))
+		print("Save button not found in scene tree")
+	
+	if has_node("MainContainer/BottomSection/GameButtons/Spacer/LoadGameButton"):
+		$MainContainer/BottomSection/GameButtons/Spacer/LoadGameButton.pressed.connect(load_game)
+		print("Load button connected")
+	else:
+		print("Load button not found in scene tree")
 
 	# Initialize UI
 	update_stats_display()
@@ -99,6 +150,12 @@ func _ready():
 	# Setup additional UI elements
 	setup_quantity_dialog()
 	setup_message_system()
+	
+	# Try to load the game on startup
+	var loaded = load_game()
+	if not loaded:
+		# If no save file, start a new game
+		new_game()
 
 func _process(delta):
 	# Handle message timeout
@@ -108,11 +165,12 @@ func _process(delta):
 			message_label.visible = false
 
 func update_stats_display():
-	cash_label.text = str(cash)
-	bank_label.text = str(bank)
-	debt_label.text = str(debt)
-	guns_label.text = str(guns)
-	health_progress.value = health
+	# Convert all values to integers before displaying
+	cash_label.text = str(int(cash))
+	bank_label.text = str(int(bank))
+	debt_label.text = str(int(debt))
+	guns_label.text = str(int(guns))
+	health_progress.value = int(health)
 
 func update_market_display():
 	market_list.clear()
@@ -131,7 +189,6 @@ func update_market_display():
 	
 	# Reset buy button state
 	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
-	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
 
 func update_inventory_display():
 	inventory_list.clear()
@@ -141,23 +198,72 @@ func update_inventory_display():
 	
 	for drug_name in drugs:
 		if drugs[drug_name]["qty"] > 0:
+			# Convert quantity to integer and display as string
+			var qty_int = int(drugs[drug_name]["qty"])
+			
 			# Only show drug name and quantity in inventory
 			inventory_list.add_item([
 				drug_name, 
-				str(drugs[drug_name]["qty"])
+				str(qty_int)  # This ensures an integer display
 			])
 	
-	# Update capacity display
-	capacity_label.text = "Trenchcoat Space: " + str(current_capacity) + "/" + str(trenchcoat_capacity)
+	# Update capacity display with integer values
+	capacity_label.text = "Trenchcoat Space: " + str(int(current_capacity)) + "/" + str(int(trenchcoat_capacity))
 	
 	# Reset sell button state
 	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
 
+# Improved price randomization function
 func randomize_prices():
-	# Simple price randomization - you'd want more complex logic in your game
+	# 10% chance of a market event
+	var event_chance = randf()
+	var event_triggered = false
+	
+	if event_chance < 0.1:
+		# Trigger a random market event
+		var event = market_events[randi() % market_events.size()]
+		
+		# Select a random drug for this event
+		var all_drugs = drugs.keys()
+		var random_drug = all_drugs[randi() % all_drugs.size()]
+		event["drug"] = random_drug
+		
+		# Apply the effect
+		var base_price = base_drug_prices[random_drug]
+		var new_price = int(base_price * (event["effect"] / 100.0))
+		drugs[random_drug]["price"] = new_price
+		
+		# Show event message
+		var message = event["message"].replace("DRUG_NAME", random_drug)
+		show_message(message)
+		
+		event_triggered = true
+	
+	# Normal price fluctuations for all drugs
 	for drug_name in drugs:
-		var base_price = drugs[drug_name]["price"]
-		drugs[drug_name]["price"] = int(base_price * randf_range(0.8, 1.2))
+		# Skip drug if it was affected by an event
+		if event_triggered and drug_name == market_events[0]["drug"]:
+			continue
+			
+		# Start with the base price
+		var base_price = base_drug_prices[drug_name]
+		
+		# Apply location modifiers if any exist for this drug in this location
+		var location_modifier = 100
+		if location_modifiers.has(current_location) and location_modifiers[current_location].has(drug_name):
+			location_modifier = location_modifiers[current_location][drug_name]
+		
+		# Calculate adjusted base price
+		var adjusted_base = int(base_price * (location_modifier / 100.0))
+		
+		# Apply random fluctuation (80% to 120% of the adjusted base price)
+		var fluctuation = randf_range(0.8, 1.2)
+		drugs[drug_name]["price"] = int(adjusted_base * fluctuation)
+	
+	# Debug info
+	print("Updated drug prices in " + current_location)
+	for drug_name in drugs:
+		print(drug_name + ": $" + str(drugs[drug_name]["price"]))
 
 func change_location(location):
 	current_location = location
@@ -232,6 +338,16 @@ func sell_drugs():
 	
 	# Show quantity dialog for selling
 	show_quantity_dialog(drug_name, price, quantity, false)
+
+# Add this function to initialize base prices when starting a new game
+func initialize_drug_prices():
+	for drug_name in drugs:
+		if base_drug_prices.has(drug_name):
+			drugs[drug_name]["price"] = base_drug_prices[drug_name]
+			drugs[drug_name]["qty"] = 0
+	
+	# Apply initial randomization
+	randomize_prices()
 
 # This function should be called in _ready() to ensure lists are properly initialized
 func initialize_lists():
@@ -331,23 +447,29 @@ func show_quantity_dialog(drug_name, price, max_qty, buying=true):
 	# Show dialog
 	quantity_dialog.popup_centered()
 
+# Update the confirm_quantity function to ensure integer values
 func confirm_quantity():
 	var quantity = int(quantity_slider.value)
 	
 	if is_buying:
 		# Buy the drugs
-		var total_cost = current_price * quantity
+		var total_cost = int(current_price * quantity)
 		cash -= total_cost
 		drugs[current_drug]["qty"] += quantity
 		current_capacity += quantity
 		show_message("Bought " + str(quantity) + " " + current_drug + " for $" + str(total_cost))
 	else:
 		# Sell the drugs
-		var total_revenue = current_price * quantity  # Using current_price which is now the market price
+		var total_revenue = int(current_price * quantity)
 		cash += total_revenue
 		drugs[current_drug]["qty"] -= quantity
 		current_capacity -= quantity
 		show_message("Sold " + str(quantity) + " " + current_drug + " for $" + str(total_revenue))
+	
+	# Make sure all values are integers
+	drugs[current_drug]["qty"] = int(drugs[current_drug]["qty"])
+	current_capacity = int(current_capacity)
+	cash = int(cash)
 	
 	# Update UI
 	update_stats_display()
@@ -355,7 +477,7 @@ func confirm_quantity():
 	
 	# Hide dialog
 	quantity_dialog.hide()
-	
+
 func setup_message_system():
 	# Create message label
 	message_label = Label.new()
@@ -411,16 +533,17 @@ func show_finances():
 	# Placeholder for finances dialog
 	show_message("Finances dialog would show here")
 
+# Update the new_game function to use the initialize function
 func new_game():
-	# Reset game state
+	# Reset game state with explicit integer values
 	cash = 2000
 	bank = 0
 	debt = 5500
 	guns = 0
 	health = 100
 	
-	for drug_name in drugs:
-		drugs[drug_name]["qty"] = 0
+	# Initialize drugs with base prices
+	initialize_drug_prices()
 	
 	current_capacity = 0
 	current_location = "Kensington"
@@ -430,6 +553,228 @@ func new_game():
 	update_inventory_display()
 	
 	show_message("New game started!")
+	
+# Called when the game is about to close
+func _notification(what):
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		if auto_save:
+			save_game()
+		get_tree().quit()
 
+# Save game data to a file
+func save_game():
+	save_dialog.popup_centered(Vector2(800, 600))
+	var save_data = {
+		"player": {
+			"cash": cash,
+			"bank": bank,
+			"debt": debt,
+			"guns": guns,
+			"health": health,
+			"current_capacity": current_capacity
+		},
+		"location": current_location,
+		"drugs": {}
+	}
+	
+	# Save drug data
+	for drug_name in drugs:
+		save_data["drugs"][drug_name] = {
+			"price": drugs[drug_name]["price"],
+			"qty": drugs[drug_name]["qty"]
+		}
+	
+	# Create a file and save the data
+	var file = FileAccess.open(save_file_path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(save_data)
+		file.store_string(json_string)
+		file.close()
+		show_message("Game saved successfully")
+		print("Game saved to: " + save_file_path)
+	else:
+		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
+		print("Failed to save game: " + str(FileAccess.get_open_error()))
+
+# Make sure loaded values are integers
+# Load game data from file
+func load_game():
+	if not get_tree().paused:
+		load_dialog.popup_centered(Vector2(800, 600))
+	return false
+	
+	# When called from _ready without a path, use the default path
+	return load_game_from_path(save_file_path)
+
+	if not FileAccess.file_exists(save_file_path):
+		show_message("No save file found")
+		print("No save file found at: " + save_file_path)
+		return false
+	
+	var file = FileAccess.open(save_file_path, FileAccess.READ)
+	if not file:
+		show_message("Failed to open save file: " + str(FileAccess.get_open_error()))
+		print("Failed to open save file: " + str(FileAccess.get_open_error()))
+		return false
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	
+	if error != OK:
+		show_message("Failed to parse save data: " + json.get_error_message())
+		print("Failed to parse save data: " + json.get_error_message() + " at line " + str(json.get_error_line()))
+		return false
+	
+	var save_data = json.get_data()
+	
+	# Load player data with explicit integer conversion
+	cash = int(save_data["player"]["cash"])
+	bank = int(save_data["player"]["bank"])
+	debt = int(save_data["player"]["debt"])
+	guns = int(save_data["player"]["guns"])
+	health = int(save_data["player"]["health"])
+	current_capacity = int(save_data["player"]["current_capacity"])
+	
+	# Load location
+	current_location = save_data["location"]
+	
+	# Load drug data with integer conversion
+	for drug_name in save_data["drugs"]:
+		if drugs.has(drug_name):
+			drugs[drug_name]["price"] = int(save_data["drugs"][drug_name]["price"])
+			drugs[drug_name]["qty"] = int(save_data["drugs"][drug_name]["qty"])
+	
+	# Update UI
+	update_stats_display()
+	update_market_display()
+	update_inventory_display()
+	
+	show_message("Game loaded successfully")
+	print("Game loaded from: " + save_file_path)
+	return true
+
+# Add this function to set up the file dialogs
+func setup_file_dialogs():
+	# Create save dialog
+	save_dialog = FileDialog.new()
+	save_dialog.file_mode = FileDialog.FILE_MODE_SAVE_FILE
+	save_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	save_dialog.filters = ["*.json ; JSON Files"]
+	save_dialog.title = "Save Game"
+	save_dialog.current_path = "user://dope_wars_save.json"
+	add_child(save_dialog)
+	
+	# Connect save dialog signals
+	save_dialog.file_selected.connect(_on_save_dialog_file_selected)
+	
+	# Create load dialog
+	load_dialog = FileDialog.new()
+	load_dialog.file_mode = FileDialog.FILE_MODE_OPEN_FILE
+	load_dialog.access = FileDialog.ACCESS_FILESYSTEM
+	load_dialog.filters = ["*.json ; JSON Files"]
+	load_dialog.title = "Load Game"
+	load_dialog.current_path = "user://dope_wars_save.json"
+	add_child(load_dialog)
+	
+	# Connect load dialog signals
+	load_dialog.file_selected.connect(_on_load_dialog_file_selected)
+
+# Handle save dialog file selection
+func _on_save_dialog_file_selected(path):
+	var save_data = {
+		"player": {
+			"cash": cash,
+			"bank": bank,
+			"debt": debt,
+			"guns": guns,
+			"health": health,
+			"current_capacity": current_capacity
+		},
+		"location": current_location,
+		"drugs": {}
+	}
+	
+	# Save drug data
+	for drug_name in drugs:
+		save_data["drugs"][drug_name] = {
+			"price": drugs[drug_name]["price"],
+			"qty": drugs[drug_name]["qty"]
+		}
+	
+	# Create a file and save the data
+	var file = FileAccess.open(path, FileAccess.WRITE)
+	if file:
+		var json_string = JSON.stringify(save_data)
+		file.store_string(json_string)
+		file.close()
+		show_message("Game saved successfully to: " + path)
+		print("Game saved to: " + path)
+	else:
+		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
+		print("Failed to save game: " + str(FileAccess.get_open_error()))
+
+
+# Handle load dialog file selection
+func _on_load_dialog_file_selected(path):
+	load_game_from_path(path)
+
+# Load game from a specific path
+func load_game_from_path(path):
+	
+	if not FileAccess.file_exists(path):
+		show_message("No save file found")
+		print("No save file found at: " + path)
+		return false
+	
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		show_message("Failed to open save file: " + str(FileAccess.get_open_error()))
+		print("Failed to open save file: " + str(FileAccess.get_open_error()))
+		return false
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	
+	if error != OK:
+		show_message("Failed to parse save data: " + json.get_error_message())
+		print("Failed to parse save data: " + json.get_error_message() + " at line " + str(json.get_error_line()))
+		return false
+	
+	var save_data = json.get_data()
+	
+	# Load player data with explicit integer conversion
+	cash = int(save_data["player"]["cash"])
+	bank = int(save_data["player"]["bank"])
+	debt = int(save_data["player"]["debt"])
+	guns = int(save_data["player"]["guns"])
+	health = int(save_data["player"]["health"])
+	current_capacity = int(save_data["player"]["current_capacity"])
+	
+	# Load location
+	current_location = save_data["location"]
+	
+	# Load drug data with integer conversion
+	for drug_name in save_data["drugs"]:
+		if drugs.has(drug_name):
+			drugs[drug_name]["price"] = int(save_data["drugs"][drug_name]["price"])
+			drugs[drug_name]["qty"] = int(save_data["drugs"][drug_name]["qty"])
+	
+	# Update UI
+	update_stats_display()
+	update_market_display()
+	update_inventory_display()
+	
+	show_message("Game loaded successfully from: " + path)
+	print("Game loaded from: " + path)
+	return true
+
+
+# Fixed function to add save/load buttons to the game
 func quit_game():
 	get_tree().quit()
