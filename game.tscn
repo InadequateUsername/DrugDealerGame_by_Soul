@@ -1,0 +1,259 @@
+[gd_scene load_steps=4 format=3 uid="uid://g4rwseo2ew52"]
+
+[ext_resource type="Script" uid="uid://ds1i7s4u7vhpd" path="res://main_game.gd" id="1_80nbo"]
+[ext_resource type="Script" uid="uid://bjcct7n8uib2h" path="res://drug_table.gd" id="2_e2o6t"]
+[ext_resource type="Script" uid="uid://b3swwctwkvpfk" path="res://theme_manager.gd" id="2_feb5d"]
+
+[node name="Control" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_80nbo")
+
+[node name="ThemeManager" type="Node" parent="."]
+script = ExtResource("2_feb5d")
+
+[node name="MainContainer" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TopSection" type="VBoxContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(0, 300)
+layout_mode = 2
+size_flags_stretch_ratio = 3.0
+theme_override_constants/separation = 10
+
+[node name="StatsContainer" type="VBoxContainer" parent="MainContainer/TopSection"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 10
+
+[node name="CashRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="CashLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/CashRow"]
+layout_mode = 2
+text = "Cash:"
+
+[node name="CashValue" type="Label" parent="MainContainer/TopSection/StatsContainer/CashRow"]
+layout_mode = 2
+text = "2000"
+horizontal_alignment = 2
+
+[node name="BankRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="BankLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/BankRow"]
+layout_mode = 2
+text = "Bank:"
+
+[node name="BankValue" type="Label" parent="MainContainer/TopSection/StatsContainer/BankRow"]
+layout_mode = 2
+text = "0"
+horizontal_alignment = 2
+
+[node name="DebtRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="DebtLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/DebtRow"]
+layout_mode = 2
+text = "Debt:"
+
+[node name="DebtValue" type="Label" parent="MainContainer/TopSection/StatsContainer/DebtRow"]
+layout_mode = 2
+text = "2000"
+horizontal_alignment = 2
+
+[node name="GunsRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+
+[node name="GunsLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/GunsRow"]
+layout_mode = 2
+text = "Guns:"
+
+[node name="GunsValue" type="Label" parent="MainContainer/TopSection/StatsContainer/GunsRow"]
+layout_mode = 2
+text = "2000"
+horizontal_alignment = 2
+
+[node name="HealthContainer" type="HBoxContainer" parent="MainContainer/TopSection/StatsContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="HealthRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer/HealthContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HealthLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/HealthContainer/HealthRow"]
+layout_mode = 2
+text = "Health: "
+
+[node name="HealthBar" type="ProgressBar" parent="MainContainer/TopSection/StatsContainer/HealthContainer/HealthRow"]
+layout_mode = 2
+
+[node name="LocationContainer" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
+layout_mode = 2
+
+[node name="LocationLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/LocationContainer"]
+layout_mode = 2
+size_flags_vertical = 8
+text = "Currently In:"
+
+[node name="LocationButtons" type="GridContainer" parent="MainContainer/TopSection/StatsContainer/LocationContainer"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+columns = 2
+
+[node name="Bronx" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Bronx"
+
+[node name="Manhattan" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Manhattan"
+
+[node name="Kensington" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Kensington"
+
+[node name="ConeyIsland" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Coney Island"
+
+[node name="CentralPark" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Central Park"
+
+[node name="Brooklyn" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+layout_mode = 2
+text = "Brooklyn"
+
+[node name="ActionButtons" type="HBoxContainer" parent="MainContainer/TopSection"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+alignment = 1
+
+[node name="BuyButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
+layout_mode = 2
+text = "Buy"
+
+[node name="SellButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
+layout_mode = 2
+text = "Sell"
+
+[node name="FinancesButton" type="Button" parent="MainContainer/TopSection/ActionButtons"]
+layout_mode = 2
+text = "Finances"
+
+[node name="BottomSection" type="HBoxContainer" parent="MainContainer"]
+custom_minimum_size = Vector2(0, 200)
+layout_mode = 2
+size_flags_vertical = 8
+theme_override_constants/separation = 10
+
+[node name="MarketContainer" type="VBoxContainer" parent="MainContainer/BottomSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="MarketLabel" type="Label" parent="MainContainer/BottomSection/MarketContainer"]
+layout_mode = 2
+text = "Market"
+
+[node name="MarketList" type="Control" parent="MainContainer/BottomSection/MarketContainer"]
+layout_mode = 2
+script = ExtResource("2_e2o6t")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer"]
+layout_mode = 2
+
+[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer"]
+layout_mode = 2
+
+[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
+layout_mode = 2
+text = "Drug"
+
+[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/MarketContainer/MarketList/ScrollContainer/ContentContainer/HeaderRow"]
+layout_mode = 2
+text = "Price"
+
+[node name="InventoryContainer" type="VBoxContainer" parent="MainContainer/BottomSection"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="CapacityLabel" type="Label" parent="MainContainer/BottomSection/InventoryContainer"]
+layout_mode = 2
+text = "Trenchcoat Space: 100/100"
+
+[node name="InventoryList" type="Control" parent="MainContainer/BottomSection/InventoryContainer"]
+layout_mode = 2
+script = ExtResource("2_e2o6t")
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="ContentContainer" type="VBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer"]
+layout_mode = 2
+
+[node name="HeaderRow" type="HBoxContainer" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer"]
+layout_mode = 2
+
+[node name="DrugHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+layout_mode = 2
+text = "Drug"
+
+[node name="QtyHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+layout_mode = 2
+text = "Qty"
+
+[node name="PriceHeader" type="Label" parent="MainContainer/BottomSection/InventoryContainer/InventoryList/ScrollContainer/ContentContainer/HeaderRow"]
+layout_mode = 2
+text = "Price"
+
+[node name="GameButtons" type="VBoxContainer" parent="MainContainer/BottomSection"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="Spacer" type="Control" parent="MainContainer/BottomSection/GameButtons"]
+layout_mode = 2
+
+[node name="NewGameButton" type="Button" parent="MainContainer/BottomSection/GameButtons/Spacer"]
+layout_mode = 0
+offset_top = -40.0
+offset_right = 93.0
+offset_bottom = -9.0
+text = "New Game"
+
+[node name="ExitButton" type="Button" parent="MainContainer/BottomSection/GameButtons/Spacer"]
+layout_mode = 0
+offset_left = -42.0
+offset_top = -40.0
+offset_right = -5.0
+offset_bottom = -9.0
+text = "Exit"
