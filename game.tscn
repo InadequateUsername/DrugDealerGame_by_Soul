@@ -119,29 +119,29 @@ custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 columns = 2
 
-[node name="Bronx" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+[node name="Erie" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
-text = "Bronx"
+text = "Erie"
 
-[node name="Manhattan" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+[node name="York" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
-text = "Manhattan"
+text = "York"
 
 [node name="Kensington" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
 text = "Kensington"
 
-[node name="ConeyIsland" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+[node name="Pittsburgh" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
-text = "Coney Island"
+text = "Pittsburgh"
 
-[node name="CentralPark" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+[node name="LovePark" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
-text = "Central Park"
+text = "Love Park"
 
-[node name="Brooklyn" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
+[node name="Reading" type="Button" parent="MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons"]
 layout_mode = 2
-text = "Brooklyn"
+text = "Reading"
 
 [node name="BottomSection" type="HBoxContainer" parent="MainContainer"]
 custom_minimum_size = Vector2(0, 200)

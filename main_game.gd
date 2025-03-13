@@ -43,12 +43,12 @@ var base_drug_prices = {
 
 # Location price modifiers (percentage adjustment)
 var location_modifiers = {
-	"Bronx": {"Crack": 80, "Weed": 110, "Speed": 90},
-	"Manhattan": {"Cocaine": 120, "Heroin": 110, "Ecstasy": 130},
+	"Erie": {"Crack": 80, "Weed": 110, "Speed": 90},
+	"York": {"Cocaine": 120, "Heroin": 110, "Ecstasy": 130},
 	"Kensington": {"Hashish": 90, "Smack": 80, "Shrooms": 70},
-	"Coney Island": {"Weed": 120, "Ecstasy": 80, "Peyote": 110},
-	"Central Park": {"Shrooms": 120, "Peyote": 130, "Weed": 90},
-	"Brooklyn": {"Crack": 70, "Smack": 85, "Speed": 120}
+	"Pittsburgh": {"Weed": 120, "Ecstasy": 80, "Peyote": 110},
+	"Love Park": {"Shrooms": 120, "Peyote": 130, "Weed": 90},
+	"Reading": {"Crack": 70, "Smack": 85, "Speed": 120}
 }
 
 # Market events (rare price spikes or crashes)
@@ -134,12 +134,12 @@ func _ready():
 	initialize_lists()
 	
 	# Connect location button signals
-	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Bronx.pressed.connect(func(): change_location("Bronx"))
-	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Manhattan.pressed.connect(func(): change_location("Manhattan"))
+	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Erie.pressed.connect(func(): change_location("Erie"))
+	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/York.pressed.connect(func(): change_location("York"))
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Kensington.pressed.connect(func(): change_location("Kensington"))
-	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/ConeyIsland.pressed.connect(func(): change_location("Coney Island"))
-	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/CentralPark.pressed.connect(func(): change_location("Central Park"))
-	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Brooklyn.pressed.connect(func(): change_location("Brooklyn"))
+	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Pittsburgh.pressed.connect(func(): change_location("Pittsburgh"))
+	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/LovePark.pressed.connect(func(): change_location("Love Park"))
+	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Reading.pressed.connect(func(): change_location("Reading"))
 	
 	# Connect action buttons
 	$MainContainer/BottomSection/ActionButtons/BuyButton.pressed.connect(buy_drugs)
