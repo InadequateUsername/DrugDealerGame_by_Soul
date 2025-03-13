@@ -23,6 +23,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 1.0
+offset_right = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -34,6 +36,7 @@ theme_override_constants/separation = 10
 
 [node name="StatsContainer" type="VBoxContainer" parent="MainContainer/TopSection"]
 layout_mode = 2
+size_flags_horizontal = 0
 size_flags_vertical = 3
 theme_override_constants/separation = 10
 
@@ -48,19 +51,6 @@ text = "Cash:"
 [node name="CashValue" type="Label" parent="MainContainer/TopSection/StatsContainer/CashRow"]
 layout_mode = 2
 text = "2000"
-horizontal_alignment = 2
-
-[node name="BankRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
-custom_minimum_size = Vector2(0, 40)
-layout_mode = 2
-
-[node name="BankLabel" type="Label" parent="MainContainer/TopSection/StatsContainer/BankRow"]
-layout_mode = 2
-text = "Bank:"
-
-[node name="BankValue" type="Label" parent="MainContainer/TopSection/StatsContainer/BankRow"]
-layout_mode = 2
-text = "0"
 horizontal_alignment = 2
 
 [node name="DebtRow" type="PanelContainer" parent="MainContainer/TopSection/StatsContainer"]
@@ -181,11 +171,16 @@ layout_mode = 2
 
 [node name="ActionButtons" type="HBoxContainer" parent="MainContainer/BottomSection"]
 layout_mode = 2
+size_flags_vertical = 4
 alignment = 1
 
 [node name="BuyButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
 layout_mode = 2
 text = "Buy"
+
+[node name="BankButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+layout_mode = 2
+text = "Bank"
 
 [node name="SellButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
 layout_mode = 2

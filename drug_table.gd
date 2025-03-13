@@ -41,14 +41,7 @@ func _ready():
 	
 	# Initial draw
 	refresh_items()
-	
-	# Set up resizing to ensure content is visible
-	resized.connect(_on_resized)
 
-func _on_resized():
-	# Ensure scroll container fills the control when resized
-	pass
-	
 func setup_control():
 	# Create scroll container that fills the entire control
 	scroll_container = ScrollContainer.new()

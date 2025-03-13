@@ -1,5 +1,224 @@
 extends Control
 
+# Handle load dialog file selection
+func _on_load_dialog_file_selected(path):
+	load_game_from_path(path)
+
+# Load game from a specific path
+func load_game_from_path(path):
+	has_unsaved_changes = false
+	if not FileAccess.file_exists(path):
+		show_message("No save file found")
+		print("No save file found at: " + path)
+		return false
+	
+	var file = FileAccess.open(path, FileAccess.READ)
+	if not file:
+		show_message("Failed to open save file: " + str(FileAccess.get_open_error()))
+		print("Failed to open save file: " + str(FileAccess.get_open_error()))
+		return false
+	
+	var json_string = file.get_as_text()
+	file.close()
+	
+	var json = JSON.new()
+	var error = json.parse(json_string)
+	
+	if error != OK:
+		show_message("Failed to parse save data: " + json.get_error_message())
+		print("Failed to parse save data: " + json.get_error_message() + " at line " + str(json.get_error_line()))
+		return false
+	
+	var save_data = json.get_data()
+	
+	# Load player data with explicit integer conversion
+	cash = int(save_data["player"]["cash"])
+	bank = int(save_data["player"]["bank"])
+	debt = int(save_data["player"]["debt"])
+	guns = int(save_data["player"]["guns"])
+	health = int(save_data["player"]["health"])
+	current_capacity = int(save_data["player"]["current_capacity"])
+	
+	# Load location
+	current_location = save_data["location"]
+	location_label.text = "Currently In:  " + current_location
+	
+	# Load drug data with integer conversion
+	for drug_name in save_data["drugs"]:
+		if drugs.has(drug_name):
+			drugs[drug_name]["price"] = int(save_data["drugs"][drug_name]["price"])
+			drugs[drug_name]["qty"] = int(save_data["drugs"][drug_name]["qty"])
+	
+	# Update UI
+	update_stats_display()
+	update_market_display()
+	update_inventory_display()
+	
+	show_message("Game loaded successfully from: " + path)
+	print("Game loaded from: " + path)
+	return true
+
+func setup_bank_dialog():
+	# Create dialog
+	bank_dialog = PopupPanel.new()
+	bank_dialog.title = "Bank Operations"
+	add_child(bank_dialog)
+	
+	# Create container
+	var vbox = VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(300, 200)
+	bank_dialog.add_child(vbox)
+	
+	# Add label
+	var label = Label.new()
+	label.text = "Banking Operations"
+	vbox.add_child(label)
+	
+	var cash_display = Label.new()
+	cash_display.name = "Cash Display"  # Add this line
+	cash_display.text = "Cash: $" + str(int(cash))
+	vbox.add_child(cash_display)
+
+	var bank_display = Label.new()
+	bank_display.name = "Bank Display"  # Add this line
+	bank_display.text = "Bank: $" + str(int(bank))
+	vbox.add_child(bank_display)
+	
+	# Add amount input
+	var input_container = HBoxContainer.new()
+	vbox.add_child(input_container)
+	
+	var input_label = Label.new()
+	input_label.text = "Amount: $"
+	input_container.add_child(input_label)
+	
+	bank_amount_input = LineEdit.new()
+	bank_amount_input.placeholder_text = "Enter amount"
+	bank_amount_input.text = "100"  # Default amount
+	bank_amount_input.size_flags_horizontal = SIZE_EXPAND_FILL
+	input_container.add_child(bank_amount_input)
+	
+	# Connect the text changed signal
+	bank_amount_input.text_changed.connect(func(new_text):
+		if new_text.is_valid_int():
+			bank_amount = int(new_text)
+		else:
+			bank_amount_input.text = str(bank_amount)
+	)
+	
+	# Add buttons
+	var button_container = HBoxContainer.new()
+	button_container.size_flags_horizontal = SIZE_EXPAND_FILL
+	vbox.add_child(button_container)
+	
+	deposit_button = Button.new()
+	deposit_button.text = "Deposit"
+	deposit_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	button_container.add_child(deposit_button)
+	
+	withdraw_button = Button.new()
+	withdraw_button.text = "Withdraw"
+	withdraw_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	button_container.add_child(withdraw_button)
+	
+	var close_button = Button.new()
+	close_button.text = "Close"
+	close_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	vbox.add_child(close_button)
+	
+	# Connect buttons
+	deposit_button.pressed.connect(func(): deposit_money())
+	withdraw_button.pressed.connect(func(): withdraw_money())
+	close_button.pressed.connect(func(): bank_dialog.hide())
+
+func show_bank_dialog():
+	# Check if the dialog exists
+	if not is_instance_valid(bank_dialog):
+		print("Bank dialog is not valid")
+		setup_bank_dialog()  # Try to set it up again
+		return
+	
+	# Get references to the labels
+	var vbox = bank_dialog.get_child(0)
+	if not is_instance_valid(vbox):
+		print("VBox container not found in bank dialog")
+		return
+		
+	var cash_display = vbox.get_node_or_null("Cash Display")
+	var bank_display = vbox.get_node_or_null("Bank Display")
+	
+	# Update the displayed values, checking if labels exist
+	if cash_display:
+		cash_display.text = "Cash: $" + str(int(cash))
+	else:
+		print("Cash display label not found")
+		
+	if bank_display:
+		bank_display.text = "Bank: $" + str(int(bank))
+	else:
+		print("Bank display label not found")
+	bank_dialog.popup_centered()
+	
+# Function to deposit money
+func deposit_money():
+	var amount = bank_amount
+	
+	# Check if the player has enough cash
+	if amount <= 0:
+		show_message("Amount must be greater than 0")
+		return
+		
+	if amount > cash:
+		show_message("You don't have enough cash")
+		return
+		
+	# Transfer the money
+	cash -= amount
+	bank += amount
+	
+	# Update displays
+	update_stats_display()
+	show_message("Deposited $" + str(amount) + " to bank")
+	
+	# Update the dialog display
+	bank_dialog.get_child(0).get_node("Cash Display").text = "Cash: $" + str(int(cash))
+	bank_dialog.get_child(0).get_node("Bank Display").text = "Bank: $" + str(int(bank))
+	
+	# Mark changes as unsaved
+	has_unsaved_changes = true
+
+# Function to withdraw money
+func withdraw_money():
+	var amount = bank_amount
+	
+	# Check if the bank has enough money
+	if amount <= 0:
+		show_message("Amount must be greater than 0")
+		return
+		
+	if amount > bank:
+		show_message("You don't have enough money in the bank")
+		return
+		
+	# Transfer the money
+	bank -= amount
+	cash += amount
+	
+	# Update displays
+	update_stats_display()
+	show_message("Withdrew $" + str(amount) + " from bank")
+	
+	# Update the dialog display
+	bank_dialog.get_child(0).get_node("Cash Display").text = "Cash: $" + str(int(cash))
+	bank_dialog.get_child(0).get_node("Bank Display").text = "Bank: $" + str(int(bank))
+	
+	# Mark changes as unsaved
+	has_unsaved_changes = true
+
+# Fixed function to add save/load buttons to the game
+func quit_game():
+	get_tree().quit()
+
 # Player stats
 var cash = 2000
 var bank = 0
@@ -12,6 +231,7 @@ var inventory = []
 var trenchcoat_capacity = 100
 var current_capacity = 0
 var has_unsaved_changes = false
+
 # Market prices
 var drugs = {
 	"Cocaine": {"price": 16388, "qty": 0},
@@ -61,7 +281,6 @@ var market_events = [
 	{"name": "Celebrity Overdose", "drug": "", "message": "A celebrity OD'd on DRUG_NAME. The drug is trending!", "effect": 150}
 ]
 
-
 # Current location
 var current_location = ""
 
@@ -87,9 +306,15 @@ var message_duration = 3.0  # How long messages stay on screen
 var save_dialog
 var load_dialog
 
+#Bank Variables
+var bank_dialog
+var deposit_button
+var withdraw_button
+var bank_amount_input
+var bank_amount = 0
+
 # UI References
 @onready var cash_label = $MainContainer/TopSection/StatsContainer/CashRow/CashValue
-@onready var bank_label = $MainContainer/TopSection/StatsContainer/BankRow/BankValue
 @onready var debt_label = $MainContainer/TopSection/StatsContainer/DebtRow/DebtValue
 @onready var guns_label = $MainContainer/TopSection/StatsContainer/GunsRow/GunsValue
 @onready var health_progress = $MainContainer/TopSection/StatsContainer/HealthContainer/HealthRow/HealthBar
@@ -106,7 +331,12 @@ func _ready():
 	setup_message_system()
 	setup_quantity_dialog()
 	setup_file_dialogs()
-	
+
+	if has_node("MainContainer/BottomSection/ActionButtons/BankButton"):
+		$MainContainer/BottomSection/ActionButtons/BankButton.pressed.connect(show_bank_dialog)
+		print("Bank button connected")
+	else:
+		print("Bank button not found in scene tree")
 	# Connect New Game button
 	if has_node("MainContainer/BottomSection/GameButtons/Spacer/NewGameButton"):
 		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(start_new_game)
@@ -177,7 +407,6 @@ func _process(delta):
 func update_stats_display():
 	# Convert all values to integers before displaying
 	cash_label.text = str(int(cash))
-	bank_label.text = str(int(bank))
 	debt_label.text = str(int(debt))
 	guns_label.text = str(int(guns))
 	health_progress.value = int(health)
@@ -280,8 +509,8 @@ func randomize_prices():
 	for drug_name in drugs:
 		print(drug_name + ": $" + str(drugs[drug_name]["price"]))
 
-# Update change_location to mark changes 
 func change_location(location):
+	# Update current location
 	current_location = location
 	location_label.text = "Currently In: " + location
 	
@@ -295,9 +524,9 @@ func change_location(location):
 	# Mark that we have unsaved changes
 	has_unsaved_changes = true
 	
-	# Show location change message
+	# Show a simple notification in the middle of the screen
 	show_message("You've arrived in " + location)
-
+		
 func buy_drugs():
 	# Get selected drug from market list
 	var selected_idx = market_list.selected_index
@@ -411,7 +640,7 @@ func setup_quantity_dialog():
 	# Add slider
 	quantity_slider = HSlider.new()
 	quantity_slider.min_value = 1
-	quantity_slider.max_value = 100
+	quantity_slider.max_value = 10000
 	quantity_slider.step = 1
 	quantity_slider.value = 1
 	vbox.add_child(quantity_slider)
@@ -550,10 +779,6 @@ func _on_inventory_item_selected(drug_name, quantity, _unused):
 	# Enable the sell button when an inventory item is selected
 	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = false
 	print("Selected from inventory: " + drug_name + " qty: " + str(quantity))
-	
-func show_finances():
-	# Placeholder for finances dialog
-	show_message("Finances dialog would show here")
 
 func new_game():
 	# Reset game state with explicit integer values
@@ -578,6 +803,9 @@ func new_game():
 	current_location = "Kensington"
 	location_label.text = "Currently In:  " + current_location
 	
+	# Show welcome message
+	show_message("Welcome to " + current_location)
+
 	# Update all UI displays
 	update_stats_display()
 	update_market_display()
@@ -651,7 +879,7 @@ func load_game():
 		# For manual loads, show the dialog and return
 		load_dialog.popup_centered(Vector2(800, 600))
 		return false
-	
+
 	# For auto-loading, check if the save file exists
 	if not FileAccess.file_exists(save_file_path):
 		print("No save file found at: " + save_file_path)
@@ -769,66 +997,3 @@ func _on_save_dialog_file_selected(path):
 	else:
 		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
 		print("Failed to save game: " + str(FileAccess.get_open_error()))
-
-
-# Handle load dialog file selection
-func _on_load_dialog_file_selected(path):
-	load_game_from_path(path)
-
-# Load game from a specific path
-func load_game_from_path(path):
-	has_unsaved_changes = false
-	if not FileAccess.file_exists(path):
-		show_message("No save file found")
-		print("No save file found at: " + path)
-		return false
-	
-	var file = FileAccess.open(path, FileAccess.READ)
-	if not file:
-		show_message("Failed to open save file: " + str(FileAccess.get_open_error()))
-		print("Failed to open save file: " + str(FileAccess.get_open_error()))
-		return false
-	
-	var json_string = file.get_as_text()
-	file.close()
-	
-	var json = JSON.new()
-	var error = json.parse(json_string)
-	
-	if error != OK:
-		show_message("Failed to parse save data: " + json.get_error_message())
-		print("Failed to parse save data: " + json.get_error_message() + " at line " + str(json.get_error_line()))
-		return false
-	
-	var save_data = json.get_data()
-	
-	# Load player data with explicit integer conversion
-	cash = int(save_data["player"]["cash"])
-	bank = int(save_data["player"]["bank"])
-	debt = int(save_data["player"]["debt"])
-	guns = int(save_data["player"]["guns"])
-	health = int(save_data["player"]["health"])
-	current_capacity = int(save_data["player"]["current_capacity"])
-	
-	# Load location
-	current_location = save_data["location"]
-	location_label.text = "Currently In:  " + current_location
-	
-	# Load drug data with integer conversion
-	for drug_name in save_data["drugs"]:
-		if drugs.has(drug_name):
-			drugs[drug_name]["price"] = int(save_data["drugs"][drug_name]["price"])
-			drugs[drug_name]["qty"] = int(save_data["drugs"][drug_name]["qty"])
-	
-	# Update UI
-	update_stats_display()
-	update_market_display()
-	update_inventory_display()
-	
-	show_message("Game loaded successfully from: " + path)
-	print("Game loaded from: " + path)
-	return true
-
-# Fixed function to add save/load buttons to the game
-func quit_game():
-	get_tree().quit()

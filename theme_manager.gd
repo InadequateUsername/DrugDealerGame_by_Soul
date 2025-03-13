@@ -195,9 +195,6 @@ func apply_dark_theme():
 	style_buttons()
 	style_tables()
 	style_progress_bars()
-	
-	# Update all UI elements with initial values
-	update_ui()
 
 func style_panels():
 	# Main background panel
@@ -252,7 +249,6 @@ func find_all_labels(node, label_list):
 func style_stats_panels():
 	# Apply styling to stats panels (Cash, Bank, Debt, Guns)
 	style_stat_panel("/root/Control/MainContainer/TopSection/StatsContainer/CashRow", CASH_COLOR)
-	style_stat_panel("/root/Control/MainContainer/TopSection/StatsContainer/BankRow", CASH_COLOR)
 	style_stat_panel("/root/Control/MainContainer/TopSection/StatsContainer/DebtRow", DEBT_COLOR)
 	style_stat_panel("/root/Control/MainContainer/TopSection/StatsContainer/GunsRow", GUNS_COLOR)
 
@@ -403,8 +399,3 @@ func style_progress_bars():
 	# Apply styles
 	health_bar.add_theme_stylebox_override("background", bg_style)
 	health_bar.add_theme_stylebox_override("fill", fill_style)
-
-func update_ui():
-	# Update all UI elements with current values
-	# (This would connect to your game state)
-	pass
