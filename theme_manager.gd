@@ -67,7 +67,7 @@ func _ready():
 	set_button_inactive(sell_button)
 
 # Signal handlers for list selections
-func _on_market_item_selected(index):
+func _on_market_item_selected(_index):
 	# Enable buy button and disable sell button
 	set_button_active(buy_button)
 	set_button_inactive(sell_button)
@@ -76,7 +76,7 @@ func _on_market_item_selected(index):
 	if inventory_list and inventory_list.is_anything_selected():
 		inventory_list.deselect_all()
 
-func _on_inventory_item_selected(index):
+func _on_inventory_item_selected(_index):
 	# Enable sell button and disable buy button
 	set_button_active(sell_button)
 	set_button_inactive(buy_button)
@@ -353,10 +353,9 @@ func style_buttons():
 
 func style_tables():
 	# Style the market and inventory lists
-	#style_list("/root/Control/MainContainer/BottomSection/MarketContainer/MarketList")
-	#style_list("/root/Control/MainContainer/BottomSection/InventoryContainer/InventoryList")
-	pass
-	
+	style_list("/root/Control/MainContainer/BottomSection/MarketContainer/MarketList")
+	style_list("/root/Control/MainContainer/BottomSection/InventoryContainer/InventoryList")
+
 func style_list(node_path):
 	var list = get_node_or_null(node_path)
 	

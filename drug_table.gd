@@ -1,7 +1,9 @@
 extends Control
 class_name DrugTable
 
-signal item_selected(drug_name, price, quantity)
+# We need two separate signals to handle different parameter counts
+signal item_selected(drug_name)
+signal item_selected_full(drug_name, price, quantity)
 
 # Table properties
 var columns = ["Drug", "Price"]
@@ -36,10 +38,10 @@ func _ready():
 
 	# Set a larger font size for better readability
 	var _default_font_size = 16
-
+	
 	# Initial draw
 	refresh_items()
-
+	
 	# Set up resizing to ensure content is visible
 	resized.connect(_on_resized)
 
@@ -77,6 +79,15 @@ func add_item(values):
 
 func clear():
 	rows.clear()
+	selected_index = -1
+	refresh_items()
+	
+# Function to check if any row is selected
+func is_anything_selected():
+	return selected_index >= 0
+	
+# Function to deselect all items
+func deselect_all():
 	selected_index = -1
 	refresh_items()
 
@@ -155,23 +166,38 @@ func refresh_items():
 		bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 		row_container.add_child(bg)
 		
-		# Create clickable button that covers the entire row
+		# Create container for text content
+		var text_container = HBoxContainer.new()
+		text_container.size_flags_horizontal = SIZE_EXPAND_FILL
+		
+		# Create clickable button with an "X" for selection
 		var button = Button.new()
-		button.flat = true  # Make it transparent
-		button.set_anchors_preset(Control.PRESET_FULL_RECT)
+		button.text = "X"  # Add X to the button
+		button.custom_minimum_size = Vector2(30, row_height - 4)  # Make it square-ish
 		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		
+		# Style the button - highlight if this row is selected
+		var button_style = StyleBoxFlat.new()
+		if row_idx == selected_index:
+			# Highlighted button style for selected row
+			button_style.bg_color = Color("#00AA00")  # Match the selected row color
+			button_style.set_border_width_all(1)
+			button_style.border_color = Color("#00FF00")  # Match the selected border color
+			button.add_theme_color_override("font_color", Color("#FFFFFF"))  # White text for selected
+		else:
+			# Normal button style for unselected rows
+			button_style.bg_color = Color("#333333")
+			button_style.set_border_width_all(1)
+			button_style.border_color = Color("#777777")
+		button_style.set_corner_radius_all(3)
+		button.add_theme_stylebox_override("normal", button_style)
 		
 		# Connect signal
 		var idx = row_idx
 		button.pressed.connect(func(): _on_row_selected(idx))
 		
-		row_container.add_child(button)
-		
-		# Create container for text content (on top of the button)
-		var text_container = HBoxContainer.new()
-		text_container.size_flags_horizontal = SIZE_EXPAND_FILL
-		text_container.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Pass mouse events to button underneath
-		row_container.add_child(text_container)
+		# Add the button at the beginning of the row
+		text_container.add_child(button)
 		
 		# Add text labels
 		for i in range(min(row_data.size(), columns.size())):
@@ -181,7 +207,6 @@ func refresh_items():
 			label.size_flags_stretch_ratio = column_widths[i]
 			label.add_theme_font_override("font", font)
 			label.add_theme_font_size_override("font_size", 16)
-			label.mouse_filter = Control.MOUSE_FILTER_IGNORE  # Pass mouse events to button underneath
 			
 			# Apply different styling for price values
 			if i == 1:  # Price column
@@ -192,6 +217,8 @@ func refresh_items():
 					selected_text_color if row_idx == selected_index else text_color)
 			
 			text_container.add_child(label)
+		
+		row_container.add_child(text_container)
 		
 		# Add spacing between rows
 		if row_idx < rows.size() - 1:
@@ -214,5 +241,12 @@ func _on_row_selected(index):
 		var price = row[1] if row.size() > 1 else 0
 		var quantity = row[2] if row.size() > 2 else 0
 		
+		# Remove $ sign from price if present
+		if typeof(price) == TYPE_STRING and price.begins_with("$"):
+			price = price.substr(1)
+			
 		print("Selected row: ", row)
-		emit_signal("item_selected", drug_name, price, quantity)
+		
+		# Emit both signals - one for theme_manager.gd and one for main_game.gd
+		emit_signal("item_selected", drug_name)
+		emit_signal("item_selected_full", drug_name, price, quantity)
