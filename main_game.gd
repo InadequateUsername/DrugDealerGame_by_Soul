@@ -3,7 +3,7 @@ extends Control
 # Player stats
 var cash = 2000
 var bank = 0
-var debt = 5500
+var debt = 5000
 var guns = 0
 var health = 100
 
@@ -11,7 +11,7 @@ var health = 100
 var inventory = []
 var trenchcoat_capacity = 100
 var current_capacity = 0
-
+var has_unsaved_changes = false
 # Market prices
 var drugs = {
 	"Cocaine": {"price": 16388, "qty": 0},
@@ -63,10 +63,10 @@ var market_events = [
 
 
 # Current location
-var current_location = "Kensington"
+var current_location = ""
 
 # Add these variables to your existing variables
-var save_file_path = "/Users/Scott/Documents/GitHub/DrugDealerGame_by_Soul"
+var save_file_path = "user://dope_wars_save.json"
 var auto_save = true  # Set to true to save automatically when quitting
 
 # Variables for quantity dialog
@@ -102,10 +102,19 @@ func _ready():
 	# Wait a frame to ensure all nodes are ready
 	await get_tree().process_frame
 	
-		# Set up file dialogs
+	# First, set up UI elements and systems to ensure they're ready
+	setup_message_system()
+	setup_quantity_dialog()
 	setup_file_dialogs()
 	
-	# Connect to buttons added in the editor
+	# Connect New Game button
+	if has_node("MainContainer/BottomSection/GameButtons/Spacer/NewGameButton"):
+		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(start_new_game)
+		print("New Game button connected")
+	else:
+		print("New Game button not found in scene tree")
+		
+	# Connect save/load buttons
 	if has_node("MainContainer/BottomSection/GameButtons/Spacer/SaveGameButton"):
 		$MainContainer/BottomSection/GameButtons/Spacer/SaveGameButton.pressed.connect(save_game)
 		print("Save button connected")
@@ -118,17 +127,13 @@ func _ready():
 	else:
 		print("Load button not found in scene tree")
 
-	# Initialize UI
+	# Initialize UI display 
 	update_stats_display()
-	update_market_display()
-	update_inventory_display()
-		# Initialize the lists with proper sizing
+	
+	# Initialize the lists with proper sizing
 	initialize_lists()
 	
-	# Add a check to print the actual dimensions and key data
-	print("Market list size after init: ", market_list.size)
-	print("Market list row count: ", market_list.rows.size())
-	# Connect button signals
+	# Connect location button signals
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Bronx.pressed.connect(func(): change_location("Bronx"))
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Manhattan.pressed.connect(func(): change_location("Manhattan"))
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Kensington.pressed.connect(func(): change_location("Kensington"))
@@ -136,6 +141,7 @@ func _ready():
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/CentralPark.pressed.connect(func(): change_location("Central Park"))
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Brooklyn.pressed.connect(func(): change_location("Brooklyn"))
 	
+	# Connect action buttons
 	$MainContainer/BottomSection/ActionButtons/BuyButton.pressed.connect(buy_drugs)
 	$MainContainer/BottomSection/ActionButtons/SellButton.pressed.connect(sell_drugs)
 	
@@ -147,15 +153,19 @@ func _ready():
 	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
 	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
 	
-	# Setup additional UI elements
-	setup_quantity_dialog()
-	setup_message_system()
+	# Start with empty market until a location is selected
+	market_list.clear()
 	
 	# Try to load the game on startup
+	print("Attempting to auto-load game from: " + save_file_path)
 	var loaded = load_game()
+	
 	if not loaded:
 		# If no save file, start a new game
+		print("No save file found or load failed, starting new game")
 		new_game()
+	else:
+		print("Game auto-loaded successfully")
 
 func _process(delta):
 	# Handle message timeout
@@ -175,13 +185,18 @@ func update_stats_display():
 func update_market_display():
 	market_list.clear()
 	
+	# Safety check: only show drugs if a location is selected
+	if current_location.is_empty():
+		print("No location selected yet, not displaying market")
+		return
+	
 	# Update prices based on location
 	randomize_prices()
 	
 	# Set up columns for the market display
 	market_list.set_columns(["Drug", "Price"], [0.6, 0.4])
 	
-	# Add items to the market list with debug info
+	# Add items to the market list
 	print("Adding " + str(drugs.size()) + " drugs to market in " + current_location)
 	for drug_name in drugs:
 		print("Adding to market: " + drug_name + " - $" + str(drugs[drug_name]["price"]))
@@ -265,9 +280,10 @@ func randomize_prices():
 	for drug_name in drugs:
 		print(drug_name + ": $" + str(drugs[drug_name]["price"]))
 
+# Update change_location to mark changes 
 func change_location(location):
 	current_location = location
-	location_label.text = "Currently In:  " + location
+	location_label.text = "Currently In: " + location
 	
 	# Update prices when changing location
 	update_market_display()
@@ -275,6 +291,9 @@ func change_location(location):
 	# Reset both button states
 	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
 	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
+	
+	# Mark that we have unsaved changes
+	has_unsaved_changes = true
 	
 	# Show location change message
 	show_message("You've arrived in " + location)
@@ -447,7 +466,7 @@ func show_quantity_dialog(drug_name, price, max_qty, buying=true):
 	# Show dialog
 	quantity_dialog.popup_centered()
 
-# Update the confirm_quantity function to ensure integer values
+# Update buy_drugs to mark changes 
 func confirm_quantity():
 	var quantity = int(quantity_slider.value)
 	
@@ -471,13 +490,16 @@ func confirm_quantity():
 	current_capacity = int(current_capacity)
 	cash = int(cash)
 	
+	# Mark that we have unsaved changes
+	has_unsaved_changes = true
+	
 	# Update UI
 	update_stats_display()
 	update_inventory_display()
 	
 	# Hide dialog
 	quantity_dialog.hide()
-
+	
 func setup_message_system():
 	# Create message label
 	message_label = Label.new()
@@ -533,27 +555,53 @@ func show_finances():
 	# Placeholder for finances dialog
 	show_message("Finances dialog would show here")
 
-# Update the new_game function to use the initialize function
 func new_game():
 	# Reset game state with explicit integer values
 	cash = 2000
-	bank = 1000
-	debt = 0
+	bank = 0
+	debt = 5000  # Starting with debt as in your original variables
 	guns = 0
 	health = 100
+	has_unsaved_changes = false
+
+	# Reset inventory
+	for drug_name in drugs:
+		drugs[drug_name]["qty"] = 0
 	
 	# Initialize drugs with base prices
 	initialize_drug_prices()
 	
+	# Reset capacity
 	current_capacity = 0
-	current_location = "Kensington"
 	
+	# Set starting location
+	current_location = "Kensington"
+	location_label.text = "Currently In:  " + current_location
+	
+	# Update all UI displays
 	update_stats_display()
 	update_market_display()
 	update_inventory_display()
 	
 	show_message("New game started!")
+
+# Then add this new method for handling the new game button press:
+func start_new_game():
+	# Show confirmation dialog before starting a new game
+	var confirmation = ConfirmationDialog.new()
+	confirmation.dialog_text = "Are you sure you want to start a new game? All unsaved progress will be lost."
+	confirmation.title = "Start New Game"
+	add_child(confirmation)
 	
+	# Connect the confirmed signal
+	confirmation.confirmed.connect(func():
+		# Call your existing new_game() function
+		new_game()
+	)
+	
+	# Show the dialog
+	confirmation.popup_centered()
+
 # Called when the game is about to close
 func _notification(what):
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
@@ -596,24 +644,22 @@ func save_game():
 		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
 		print("Failed to save game: " + str(FileAccess.get_open_error()))
 
-# Make sure loaded values are integers
 # Load game data from file
 func load_game():
+	# Check if being called from UI button (manual load)
 	if not get_tree().paused:
+		# For manual loads, show the dialog and return
 		load_dialog.popup_centered(Vector2(800, 600))
-	return false
+		return false
 	
-	# When called from _ready without a path, use the default path
-	return load_game_from_path(save_file_path)
-
+	# For auto-loading, check if the save file exists
 	if not FileAccess.file_exists(save_file_path):
-		show_message("No save file found")
 		print("No save file found at: " + save_file_path)
 		return false
 	
+	# Try to load the game from the default path
 	var file = FileAccess.open(save_file_path, FileAccess.READ)
 	if not file:
-		show_message("Failed to open save file: " + str(FileAccess.get_open_error()))
 		print("Failed to open save file: " + str(FileAccess.get_open_error()))
 		return false
 	
@@ -624,7 +670,6 @@ func load_game():
 	var error = json.parse(json_string)
 	
 	if error != OK:
-		show_message("Failed to parse save data: " + json.get_error_message())
 		print("Failed to parse save data: " + json.get_error_message() + " at line " + str(json.get_error_line()))
 		return false
 	
@@ -640,6 +685,7 @@ func load_game():
 	
 	# Load location
 	current_location = save_data["location"]
+	location_label.text = "Currently In: " + current_location
 	
 	# Load drug data with integer conversion
 	for drug_name in save_data["drugs"]:
@@ -647,15 +693,21 @@ func load_game():
 			drugs[drug_name]["price"] = int(save_data["drugs"][drug_name]["price"])
 			drugs[drug_name]["qty"] = int(save_data["drugs"][drug_name]["qty"])
 	
+	# Mark as saved (no unsaved changes)
+	has_unsaved_changes = false
+	
 	# Update UI
 	update_stats_display()
 	update_market_display()
 	update_inventory_display()
 	
-	show_message("Game loaded successfully")
+	# Only show message if message system is initialized
+	if message_label and is_instance_valid(message_label):
+		show_message("Game loaded successfully")
+	
 	print("Game loaded from: " + save_file_path)
 	return true
-
+	
 # Add this function to set up the file dialogs
 func setup_file_dialogs():
 	# Create save dialog
@@ -696,7 +748,9 @@ func _on_save_dialog_file_selected(path):
 		"location": current_location,
 		"drugs": {}
 	}
-	
+
+	has_unsaved_changes = false
+
 	# Save drug data
 	for drug_name in drugs:
 		save_data["drugs"][drug_name] = {
@@ -723,7 +777,7 @@ func _on_load_dialog_file_selected(path):
 
 # Load game from a specific path
 func load_game_from_path(path):
-	
+	has_unsaved_changes = false
 	if not FileAccess.file_exists(path):
 		show_message("No save file found")
 		print("No save file found at: " + path)
@@ -758,6 +812,7 @@ func load_game_from_path(path):
 	
 	# Load location
 	current_location = save_data["location"]
+	location_label.text = "Currently In:  " + current_location
 	
 	# Load drug data with integer conversion
 	for drug_name in save_data["drugs"]:
@@ -773,7 +828,6 @@ func load_game_from_path(path):
 	show_message("Game loaded successfully from: " + path)
 	print("Game loaded from: " + path)
 	return true
-
 
 # Fixed function to add save/load buttons to the game
 func quit_game():

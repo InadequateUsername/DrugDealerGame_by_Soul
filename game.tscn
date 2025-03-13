@@ -249,14 +249,6 @@ offset_right = 94.0
 offset_bottom = -7.0
 text = "Load Game"
 
-[node name="ExitButton" type="Button" parent="MainContainer/BottomSection/GameButtons/Spacer"]
-layout_mode = 0
-offset_left = -232.0
-offset_top = -38.0
-offset_right = -195.0
-offset_bottom = -7.0
-text = "Exit"
-
 [node name="SaveGameButton" type="Button" parent="MainContainer/BottomSection/GameButtons/Spacer"]
 layout_mode = 0
 offset_left = -98.0

@@ -151,29 +151,63 @@ func style_buttons():
 	var buttons = get_tree().get_nodes_in_group("buttons")
 	
 	for button in buttons:
+		var bg_color = BUTTON_BG_COLOR
+		var hover_color = Color(BUTTON_BG_COLOR.r + 0.1, BUTTON_BG_COLOR.g + 0.1, BUTTON_BG_COLOR.b + 0.1)
+		var pressed_color = BUTTON_ACTIVE_BG_COLOR
+		var border_color = BORDER_COLOR
+		var text_color = TEXT_COLOR
+		
+		# Special styling for Buy button (green)
+		if button.name == "Buy":
+			bg_color = Color("#2D882D")  # Darker green
+			hover_color = Color("#3AA83A")  # Medium green
+			pressed_color = Color("#4BC44B")  # Lighter green
+			border_color = Color("#88FF88")  # Light green border
+			text_color = Color.WHITE
+		
+		# Special styling for Sell button (red)
+		elif button.name == "Sell":
+			bg_color = Color("#AA2828")  # Darker red
+			hover_color = Color("#CC3232")  # Medium red
+			pressed_color = Color("#E03C3C")  # Lighter red
+			border_color = Color("#FF8888")  # Light red border
+			text_color = Color.WHITE
+		
+		# Default styling for other action buttons
+		elif button.get_parent() and button.get_parent().name == "ActionButtons":
+			bg_color = Color("#4D8A4D")  # Green for other action buttons
+			hover_color = Color("#5AAD5A")
+			pressed_color = Color("#75C675")
+			border_color = Color("#88FF88")
+			text_color = Color.WHITE
+		
 		# Normal state
 		var normal_style = StyleBoxFlat.new()
-		normal_style.bg_color = BUTTON_BG_COLOR
+		normal_style.bg_color = bg_color
 		normal_style.set_border_width_all(1)
-		normal_style.border_color = BORDER_COLOR
+		normal_style.border_color = border_color
+		normal_style.set_corner_radius_all(3)  # Rounded corners for better appearance
 		
 		# Hover state
 		var hover_style = StyleBoxFlat.new()
-		hover_style.bg_color = Color(BUTTON_BG_COLOR.r + 0.1, BUTTON_BG_COLOR.g + 0.1, BUTTON_BG_COLOR.b + 0.1)
+		hover_style.bg_color = hover_color
 		hover_style.set_border_width_all(1)
-		hover_style.border_color = BORDER_COLOR
+		hover_style.border_color = border_color
+		hover_style.set_corner_radius_all(3)
 		
 		# Pressed state
 		var pressed_style = StyleBoxFlat.new()
-		pressed_style.bg_color = BUTTON_ACTIVE_BG_COLOR
+		pressed_style.bg_color = pressed_color
 		pressed_style.set_border_width_all(1)
-		pressed_style.border_color = BORDER_COLOR
+		pressed_style.border_color = border_color
+		pressed_style.set_corner_radius_all(3)
 		
 		# Focus state
 		var focus_style = StyleBoxFlat.new()
-		focus_style.bg_color = BUTTON_BG_COLOR
+		focus_style.bg_color = bg_color
 		focus_style.set_border_width_all(2)
 		focus_style.border_color = SELECTION_COLOR
+		focus_style.set_corner_radius_all(3)
 		
 		# Apply styles
 		button.add_theme_stylebox_override("normal", normal_style)
@@ -182,9 +216,12 @@ func style_buttons():
 		button.add_theme_stylebox_override("focus", focus_style)
 		
 		# Text color
-		button.add_theme_color_override("font_color", TEXT_COLOR)
+		button.add_theme_color_override("font_color", text_color)
 		button.add_theme_color_override("font_pressed_color", Color.WHITE)
 		button.add_theme_color_override("font_hover_color", Color.WHITE)
+		
+		# Change cursor to pointing hand for all buttons
+		button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 
 func style_tables():
 	# Style the market and inventory lists
