@@ -1,5 +1,8 @@
 extends Control
 
+const CellphoneUI = preload("res://cellphone_ui.tscn")
+var cellphone_instance
+
 # Handle load dialog file selection
 func _on_load_dialog_file_selected(path):
 	load_game_from_path(path)
@@ -331,9 +334,10 @@ func _ready():
 	setup_message_system()
 	setup_quantity_dialog()
 	setup_file_dialogs()
-
-	if has_node("MainContainer/BottomSection/ActionButtons/BankButton"):
-		$MainContainer/BottomSection/ActionButtons/BankButton.pressed.connect(show_bank_dialog)
+	# In your _ready() function
+	
+	if has_node("MainContainer/BottomSection/ActionButtons/GridContainer/GridContainer/BankButton"):
+		$MainContainer/BottomSection/ActionButtons/GridContainer/GridContainer/BankButton.pressed.connect(show_bank_dialog)
 		print("Bank button connected")
 	else:
 		print("Bank button not found in scene tree")
@@ -372,16 +376,16 @@ func _ready():
 	$MainContainer/TopSection/StatsContainer/LocationContainer/LocationButtons/Reading.pressed.connect(func(): change_location("Reading"))
 	
 	# Connect action buttons
-	$MainContainer/BottomSection/ActionButtons/BuyButton.pressed.connect(buy_drugs)
-	$MainContainer/BottomSection/ActionButtons/SellButton.pressed.connect(sell_drugs)
+	$MainContainer/BottomSection/ActionButtons/GridContainer/BuyButton.pressed.connect(buy_drugs)
+	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.pressed.connect(sell_drugs)
 	
 	# Connect list signals
 	market_list.item_selected_full.connect(_on_market_item_selected)
 	inventory_list.item_selected_full.connect(_on_inventory_item_selected)
 	
 	# Initially disable buy/sell buttons until selection is made
-	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
-	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/BuyButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.disabled = true
 	
 	# Start with empty market until a location is selected
 	market_list.clear()
@@ -396,6 +400,20 @@ func _ready():
 		new_game()
 	else:
 		print("Game auto-loaded successfully")
+# Connect CellphoneButton in your _ready() function
+	setup_cellphone()
+	
+	# Connect CellphoneButton
+	if has_node("MainContainer/BottomSection/ActionButtons/GridContainer/CellphoneButton"):
+		$MainContainer/BottomSection/ActionButtons/GridContainer/CellphoneButton.pressed.connect(func(): show_cellphone())
+		print("Cellphone button connected")
+	else:
+		print("Cellphone button not found in scene tree")
+
+func show_cellphone():
+	# This ensures the cellphone only appears when you click the button
+	if cellphone_instance:
+		cellphone_instance.get_node("Popup").popup_centered()
 
 func _process(delta):
 	# Handle message timeout
@@ -432,7 +450,7 @@ func update_market_display():
 		market_list.add_item([drug_name, "$" + str(drugs[drug_name]["price"])])
 	
 	# Reset buy button state
-	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/BuyButton.disabled = true
 
 func update_inventory_display():
 	inventory_list.clear()
@@ -455,7 +473,7 @@ func update_inventory_display():
 	capacity_label.text = "Trenchcoat Space: " + str(int(current_capacity)) + "/" + str(int(trenchcoat_capacity))
 	
 	# Reset sell button state
-	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.disabled = true
 
 # Improved price randomization function
 func randomize_prices():
@@ -518,8 +536,8 @@ func change_location(location):
 	update_market_display()
 	
 	# Reset both button states
-	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = true
-	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/BuyButton.disabled = true
+	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.disabled = true
 	
 	# Mark that we have unsaved changes
 	has_unsaved_changes = true
@@ -768,7 +786,7 @@ func show_message(text, duration = 3.0):
 
 func _on_market_item_selected(drug_name, price, _quantity):
 	# Enable the buy button when a market item is selected
-	$MainContainer/BottomSection/ActionButtons/BuyButton.disabled = false
+	$MainContainer/BottomSection/ActionButtons/GridContainer/BuyButton.disabled = false
 	print("Selected from market: " + drug_name + " at $" + str(price))
 
 # Update the _on_inventory_item_selected function to match the new format
@@ -777,7 +795,7 @@ func _on_inventory_item_selected(drug_name, quantity, _unused):
 	# The _unused parameter is there to maintain compatibility with the signal signature
 	
 	# Enable the sell button when an inventory item is selected
-	$MainContainer/BottomSection/ActionButtons/SellButton.disabled = false
+	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.disabled = false
 	print("Selected from inventory: " + drug_name + " qty: " + str(quantity))
 
 func new_game():
@@ -997,3 +1015,94 @@ func _on_save_dialog_file_selected(path):
 	else:
 		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
 		print("Failed to save game: " + str(FileAccess.get_open_error()))
+
+# Placeholder functions for phone contacts
+func show_loan_shark():
+	var interest_rate = 10
+	var payback_amount = int(debt * (1 + interest_rate / 100.0))
+	var message = "Current debt: $" + str(debt) + "\n"
+	message += "Interest rate: " + str(interest_rate) + "%\n"
+	message += "Payback amount: $" + str(payback_amount) + "\n"
+	
+	if cash >= debt:
+		message += "You have enough cash to pay off your debt."
+	else:
+		message += "You need $" + str(debt - cash) + " more to pay off your debt."
+
+	cellphone_instance.update_message(message)  # Use this instead of update_phone_message
+	show_message("Loan Shark: 'Pay your debt or else!'")
+
+func show_gun_dealer():
+	var gun_price = 1000
+	var message = "Guns available: Standard pistol\n"
+	message += "Price: $" + str(gun_price) + "\n"
+	
+	if cash >= gun_price:
+		message += "You have enough cash to buy a gun."
+	else:
+		message += "You need $" + str(gun_price - cash) + " more to buy a gun."
+		
+	cellphone_instance.update_message(message)  # Use this instead of update_phone_message
+	show_message("Gun Dealer: 'I've got what you need.'")
+
+func show_police_info():
+	var message = "Police activity in different locations:\n"
+	message += "- High: York, Pittsburgh\n"
+	message += "- Medium: Erie, Kensington\n"
+	message += "- Low: Love Park, Reading\n"
+	message += "\nCurrent location: " + current_location
+	
+	cellphone_instance.update_message(message)  # Use this instead of update_phone_message
+	show_message("Police are active in " + current_location)
+
+func show_market_tips():
+	var drugs_list = drugs.keys()
+	var random_drug = drugs_list[randi() % drugs_list.size()]
+	var best_location = ""
+	var highest_modifier = 0
+	
+	# Find location with highest price modifier for the random drug
+	for location in location_modifiers:
+		if location_modifiers[location].has(random_drug):
+			var modifier = location_modifiers[location][random_drug]
+			if modifier > highest_modifier:
+				highest_modifier = modifier
+				best_location = location
+	
+	var message = "Market Tips:\n"
+	if best_location != "":
+		message += random_drug + " prices are high in " + best_location + "\n"
+	else:
+		message += random_drug + " prices are standard everywhere\n"
+	
+	# Add a second random tip
+	var random_drug2 = drugs_list[randi() % drugs_list.size()]
+	while random_drug2 == random_drug:
+		random_drug2 = drugs_list[randi() % drugs_list.size()]
+	
+	message += "\nAlso check out " + random_drug2 + " in " + current_location
+	
+	cellphone_instance.update_message(message)  # Use this instead of update_phone_message
+	show_message("Tip: Check your phone for market information")
+
+func setup_cellphone():
+	# Create an instance of the phone UI
+	cellphone_instance = CellphoneUI.instantiate()
+	add_child(cellphone_instance)
+
+	# Make sure it's initially hidden
+	cellphone_instance.hide()
+
+	# Connect the contact_selected signal
+	cellphone_instance.contact_selected.connect(_on_cellphone_contact_selected)
+
+func _on_cellphone_contact_selected(contact_name):
+	match contact_name:
+		"Loan Shark":
+			show_loan_shark()
+		"Gun Dealer":
+			show_gun_dealer()
+		"Police Info":
+			show_police_info()
+		"Market Tips":
+			show_market_tips()

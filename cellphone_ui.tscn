@@ -1,0 +1,85 @@
+[gd_scene load_steps=3 format=3 uid="uid://c03mrwttthu1y"]
+
+[ext_resource type="Texture2D" uid="uid://px2scyw4ojyx" path="res://phone-png-12.png" id="1_qheeh"]
+[ext_resource type="Script" uid="uid://dkquvk7wfil72" path="res://cellphone_ui.gd" id="1_tcatr"]
+
+[node name="CellphoneUI" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_tcatr")
+
+[node name="Popup" type="Popup" parent="."]
+size = Vector2i(320, 604)
+visible = true
+
+[node name="TextureRect" type="TextureRect" parent="Popup"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+texture = ExtResource("1_qheeh")
+
+[node name="Control" type="Control" parent="Popup/TextureRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="Popup/TextureRect/Control"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -18.0
+offset_bottom = 31.0
+grow_horizontal = 0
+text = "X"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Popup/TextureRect/Control"]
+layout_mode = 0
+offset_left = 42.0
+offset_top = 93.0
+offset_right = 282.0
+offset_bottom = 516.0
+
+[node name="Label" type="Label" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Soul Mobile"
+
+[node name="LoanSharkButton" type="Button" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Loan Shark"
+
+[node name="GunDealerButton" type="Button" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Gun Dealer"
+
+[node name="PoliceInfoButton" type="Button" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Police Info"
+
+[node name="MarketTipsButton" type="Button" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Market Tips"
+
+[node name="BankButton" type="Button" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Soulioli Banking"
+
+[node name="HSeparator" type="HSeparator" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+
+[node name="MessageLabel" type="Label" parent="Popup/TextureRect/Control/VBoxContainer"]
+layout_mode = 2
+text = "Message Goes Here!"

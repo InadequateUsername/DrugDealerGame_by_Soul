@@ -174,17 +174,25 @@ layout_mode = 2
 size_flags_vertical = 4
 alignment = 1
 
-[node name="BuyButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+[node name="GridContainer" type="GridContainer" parent="MainContainer/BottomSection/ActionButtons"]
+layout_mode = 2
+columns = 3
+
+[node name="BuyButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
 layout_mode = 2
 text = "Buy"
 
-[node name="BankButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+[node name="BankButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
 layout_mode = 2
 text = "Bank"
 
-[node name="SellButton" type="Button" parent="MainContainer/BottomSection/ActionButtons"]
+[node name="SellButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
 layout_mode = 2
 text = "Sell"
+
+[node name="CellphoneButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
+layout_mode = 2
+text = "Celly"
 
 [node name="InventoryContainer" type="VBoxContainer" parent="MainContainer/BottomSection"]
 layout_mode = 2
