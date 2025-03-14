@@ -170,7 +170,7 @@ func _ready():
 	$MainContainer/BottomSection/ActionButtons/GridContainer/SellButton.disabled = true
 	
 	# Try to load the game on startup
-	var loaded = load_game()
+	var loaded = auto_load_game()
 	
 	if not loaded:
 		# If no save file, start a new game
@@ -1029,11 +1029,17 @@ func save_game():
 	else:
 		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
 
+func auto_load_game():
+	if not FileAccess.file_exists(save_file_path):
+		return false
+	
+	return load_game_from_path(save_file_path)
+
 func load_game():
 	if not get_tree().paused:
 		load_dialog.popup_centered(Vector2(800, 600))
 		return false
-
+	
 	if not FileAccess.file_exists(save_file_path):
 		return false
 	
