@@ -32,7 +32,7 @@ var has_unsaved_changes = false
 
 # Market prices
 var drugs = {
-	"Cocaine": {"price": 16388, "qty": 0},
+	"Cocaine": {"price": 16000, "qty": 0},
 	"Hashish": {"price": 604, "qty": 0},
 	"Heroin": {"price": 10016, "qty": 0},
 	"Ecstasy": {"price": 28, "qty": 0},
