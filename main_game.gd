@@ -357,6 +357,8 @@ func _ready():
 	else:
 		print("Bank button not found in scene tree")
 
+
+
 	# Connect New Game button
 	if has_node("MainContainer/BottomSection/GameButtons/Spacer/NewGameButton"):
 		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(start_new_game)
