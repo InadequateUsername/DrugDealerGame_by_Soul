@@ -21,6 +21,8 @@ func _ready():
 	
 	$Popup/TextureRect/Control/VBoxContainer/MarketTipsButton.pressed.connect(
 		func(): emit_signal("contact_selected", "Market Tips"))
+	$Popup/TextureRect/Control/VBoxContainer/BankButton.pressed.connect(
+		func(): emit_signal("contact_selected", "Soulioli Banking"))
 
 # Function to update the message text
 func update_message(text):

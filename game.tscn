@@ -182,17 +182,13 @@ columns = 3
 layout_mode = 2
 text = "Buy"
 
-[node name="BankButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
+[node name="CellphoneButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
 layout_mode = 2
-text = "Bank"
+text = "Celly"
 
 [node name="SellButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
 layout_mode = 2
 text = "Sell"
-
-[node name="CellphoneButton" type="Button" parent="MainContainer/BottomSection/ActionButtons/GridContainer"]
-layout_mode = 2
-text = "Celly"
 
 [node name="InventoryContainer" type="VBoxContainer" parent="MainContainer/BottomSection"]
 layout_mode = 2

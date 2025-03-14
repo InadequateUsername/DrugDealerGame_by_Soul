@@ -3,6 +3,13 @@ extends Control
 const CellphoneUI = preload("res://cellphone_ui.tscn")
 var cellphone_instance
 
+# Variables for loan shark
+var loan_shark_dialog
+var loan_amount_input
+var loan_amount = 0
+var payback_button
+var borrow_button
+
 # Handle load dialog file selection
 func _on_load_dialog_file_selected(path):
 	load_game_from_path(path)
@@ -61,6 +68,34 @@ func load_game_from_path(path):
 	print("Game loaded from: " + path)
 	return true
 
+func show_bank_dialog():
+	# Check if the dialog exists
+	if not is_instance_valid(bank_dialog):
+		print("Bank dialog is not valid")
+		setup_bank_dialog()  # Try to set it up again
+		return
+	
+	# Get references to the labels
+	var vbox = bank_dialog.get_child(0)
+	if not is_instance_valid(vbox):
+		print("VBox container not found in bank dialog")
+		return
+		
+	var cash_display = vbox.get_node_or_null("Cash Display")
+	var bank_display = vbox.get_node_or_null("Bank Display")
+	
+	# Update the displayed values, checking if labels exist
+	if cash_display:
+		cash_display.text = "Cash: $" + str(int(cash))
+	else:
+		print("Cash display label not found")
+		
+	if bank_display:
+		bank_display.text = "Bank: $" + str(int(bank))
+	else:
+		print("Bank display label not found")
+	bank_dialog.popup_centered()
+
 func setup_bank_dialog():
 	# Create dialog
 	bank_dialog = PopupPanel.new()
@@ -78,12 +113,11 @@ func setup_bank_dialog():
 	vbox.add_child(label)
 	
 	var cash_display = Label.new()
-	cash_display.name = "Cash Display"  # Add this line
+	cash_display.name = "Cash Display"
 	cash_display.text = "Cash: $" + str(int(cash))
 	vbox.add_child(cash_display)
-
 	var bank_display = Label.new()
-	bank_display.name = "Bank Display"  # Add this line
+	bank_display.name = "Bank Display"
 	bank_display.text = "Bank: $" + str(int(bank))
 	vbox.add_child(bank_display)
 	
@@ -132,36 +166,15 @@ func setup_bank_dialog():
 	# Connect buttons
 	deposit_button.pressed.connect(func(): deposit_money())
 	withdraw_button.pressed.connect(func(): withdraw_money())
-	close_button.pressed.connect(func(): bank_dialog.hide())
+	
+	# Modify the close button connection to reopen the phone
+	close_button.pressed.connect(func(): 
+		bank_dialog.hide()
+		# Reopen the phone
+		if is_instance_valid(cellphone_instance):
+			cellphone_instance.get_node("Popup").popup_centered()
+	)
 
-func show_bank_dialog():
-	# Check if the dialog exists
-	if not is_instance_valid(bank_dialog):
-		print("Bank dialog is not valid")
-		setup_bank_dialog()  # Try to set it up again
-		return
-	
-	# Get references to the labels
-	var vbox = bank_dialog.get_child(0)
-	if not is_instance_valid(vbox):
-		print("VBox container not found in bank dialog")
-		return
-		
-	var cash_display = vbox.get_node_or_null("Cash Display")
-	var bank_display = vbox.get_node_or_null("Bank Display")
-	
-	# Update the displayed values, checking if labels exist
-	if cash_display:
-		cash_display.text = "Cash: $" + str(int(cash))
-	else:
-		print("Cash display label not found")
-		
-	if bank_display:
-		bank_display.text = "Bank: $" + str(int(bank))
-	else:
-		print("Bank display label not found")
-	bank_dialog.popup_centered()
-	
 # Function to deposit money
 func deposit_money():
 	var amount = bank_amount
@@ -334,13 +347,16 @@ func _ready():
 	setup_message_system()
 	setup_quantity_dialog()
 	setup_file_dialogs()
+	setup_bank_dialog()  # Add this line to set up the bank dialog
+	setup_loan_shark_dialog()  # Add this line
 	# In your _ready() function
 	
-	if has_node("MainContainer/BottomSection/ActionButtons/GridContainer/GridContainer/BankButton"):
-		$MainContainer/BottomSection/ActionButtons/GridContainer/GridContainer/BankButton.pressed.connect(show_bank_dialog)
+	if has_node("MainContainer/BottomSection/ActionButtons/GridContainer/BankButton"):
+		$MainContainer/BottomSection/ActionButtons/GridContainer/BankButton.pressed.connect(show_bank_dialog)
 		print("Bank button connected")
 	else:
 		print("Bank button not found in scene tree")
+
 	# Connect New Game button
 	if has_node("MainContainer/BottomSection/GameButtons/Spacer/NewGameButton"):
 		$MainContainer/BottomSection/GameButtons/Spacer/NewGameButton.pressed.connect(start_new_game)
@@ -1016,22 +1032,6 @@ func _on_save_dialog_file_selected(path):
 		show_message("Failed to save game: " + str(FileAccess.get_open_error()))
 		print("Failed to save game: " + str(FileAccess.get_open_error()))
 
-# Placeholder functions for phone contacts
-func show_loan_shark():
-	var interest_rate = 10
-	var payback_amount = int(debt * (1 + interest_rate / 100.0))
-	var message = "Current debt: $" + str(debt) + "\n"
-	message += "Interest rate: " + str(interest_rate) + "%\n"
-	message += "Payback amount: $" + str(payback_amount) + "\n"
-	
-	if cash >= debt:
-		message += "You have enough cash to pay off your debt."
-	else:
-		message += "You need $" + str(debt - cash) + " more to pay off your debt."
-
-	cellphone_instance.update_message(message)  # Use this instead of update_phone_message
-	show_message("Loan Shark: 'Pay your debt or else!'")
-
 func show_gun_dealer():
 	var gun_price = 1000
 	var message = "Guns available: Standard pistol\n"
@@ -1106,3 +1106,186 @@ func _on_cellphone_contact_selected(contact_name):
 			show_police_info()
 		"Market Tips":
 			show_market_tips()
+		"Soulioli Banking":
+			# Hide the phone first
+			cellphone_instance.get_node("Popup").hide()
+			# Then show the banking dialog
+			show_bank_dialog()
+
+
+#Loan Shark
+func setup_loan_shark_dialog():
+	# Create dialog
+	loan_shark_dialog = PopupPanel.new()
+	loan_shark_dialog.title = "Loan Shark"
+	add_child(loan_shark_dialog)
+	
+	# Create container
+	var vbox = VBoxContainer.new()
+	vbox.custom_minimum_size = Vector2(300, 200)
+	loan_shark_dialog.add_child(vbox)
+	
+	# Add label
+	var title_label = Label.new()
+	title_label.text = "Loan Shark Operations"
+	vbox.add_child(title_label)
+	
+	# Add debt display
+	var debt_display = Label.new()
+	debt_display.name = "Debt Display"
+	debt_display.text = "Current Debt: $" + str(int(debt))
+	vbox.add_child(debt_display)
+	
+	# Add interest rate display
+	var interest_display = Label.new()
+	interest_display.name = "Interest Display"
+	interest_display.text = "Interest Rate: 10%"
+	vbox.add_child(interest_display)
+	
+	# Add cash display
+	var cash_display = Label.new()
+	cash_display.name = "Cash Display"
+	cash_display.text = "Cash: $" + str(int(cash))
+	vbox.add_child(cash_display)
+	
+	# Add amount input
+	var input_container = HBoxContainer.new()
+	vbox.add_child(input_container)
+	
+	var input_label = Label.new()
+	input_label.text = "Amount: $"
+	input_container.add_child(input_label)
+	
+	loan_amount_input = LineEdit.new()
+	loan_amount_input.placeholder_text = "Enter amount"
+	loan_amount_input.text = "100"  # Default amount
+	loan_amount_input.size_flags_horizontal = SIZE_EXPAND_FILL
+	input_container.add_child(loan_amount_input)
+	
+	# Connect the text changed signal
+	loan_amount_input.text_changed.connect(func(new_text):
+		if new_text.is_valid_int():
+			loan_amount = int(new_text)
+		else:
+			loan_amount_input.text = str(loan_amount)
+	)
+	
+	# Add buttons
+	var button_container = HBoxContainer.new()
+	button_container.size_flags_horizontal = SIZE_EXPAND_FILL
+	vbox.add_child(button_container)
+	
+	payback_button = Button.new()
+	payback_button.text = "Pay Debt"
+	payback_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	button_container.add_child(payback_button)
+	
+	borrow_button = Button.new()
+	borrow_button.text = "Borrow"
+	borrow_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	button_container.add_child(borrow_button)
+	
+	var close_button = Button.new()
+	close_button.text = "Close"
+	close_button.size_flags_horizontal = SIZE_EXPAND_FILL
+	vbox.add_child(close_button)
+	
+	# Connect buttons
+	payback_button.pressed.connect(func(): pay_debt())
+	borrow_button.pressed.connect(func(): borrow_money())
+	
+	# Modify the close button connection to reopen the phone
+	close_button.pressed.connect(func(): 
+		loan_shark_dialog.hide()
+		# Reopen the phone
+		if is_instance_valid(cellphone_instance):
+			cellphone_instance.get_node("Popup").popup_centered()
+	)
+
+func pay_debt():
+	var amount = loan_amount
+	
+	# Check if the player has enough cash
+	if amount <= 0:
+		show_message("Amount must be greater than 0")
+		return
+		
+	if amount > cash:
+		show_message("You don't have enough cash")
+		return
+		
+	if amount > debt:
+		show_message("You're trying to pay more than you owe")
+		return
+		
+	# Transfer the money
+	cash -= amount
+	debt -= amount
+	
+	# Update displays
+	update_stats_display()
+	show_message("Paid $" + str(amount) + " to Loan Shark")
+	
+	# Update the dialog display
+	loan_shark_dialog.get_child(0).get_node("Debt Display").text = "Current Debt: $" + str(int(debt))
+	loan_shark_dialog.get_child(0).get_node("Cash Display").text = "Cash: $" + str(int(cash))
+	
+	# Mark changes as unsaved
+	has_unsaved_changes = true
+
+func borrow_money():
+	var amount = loan_amount
+	
+	# Validations
+	if amount <= 0:
+		show_message("Amount must be greater than 0")
+		return
+	
+	# Optional: Add a maximum borrowing limit
+	var max_borrow = 10000
+	if amount > max_borrow:
+		show_message("Loan Shark won't lend more than $" + str(max_borrow) + " at once")
+		return
+	
+	# Add the borrowed amount to cash and debt
+	cash += amount
+	debt += amount
+	
+	# Update displays
+	update_stats_display()
+	show_message("Borrowed $" + str(amount) + " from Loan Shark")
+	
+	# Update the dialog display
+	loan_shark_dialog.get_child(0).get_node("Debt Display").text = "Current Debt: $" + str(int(debt))
+	loan_shark_dialog.get_child(0).get_node("Cash Display").text = "Cash: $" + str(int(cash))
+	
+	# Mark changes as unsaved
+	has_unsaved_changes = true
+
+func show_loan_shark():
+	# Check if the dialog exists
+	if not is_instance_valid(loan_shark_dialog):
+		print("Loan shark dialog is not valid")
+		setup_loan_shark_dialog()  # Set it up if it doesn't exist
+	
+	# Update the displayed values
+	var vbox = loan_shark_dialog.get_child(0)
+	if vbox:
+		var debt_display = vbox.get_node_or_null("Debt Display")
+		var cash_display = vbox.get_node_or_null("Cash Display")
+		
+		if debt_display:
+			debt_display.text = "Current Debt: $" + str(int(debt))
+		else:
+			print("Debt display label not found")
+			
+		if cash_display:
+			cash_display.text = "Cash: $" + str(int(cash))
+		else:
+			print("Cash display label not found")
+	
+	# Hide the phone first
+	cellphone_instance.get_node("Popup").hide()
+	
+	# Show the loan shark dialog
+	loan_shark_dialog.popup_centered()
